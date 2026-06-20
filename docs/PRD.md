@@ -38,25 +38,25 @@ Consumes the **Evaluation API** (directly or via SDK) to check whether a flag is
 
 ## 5. Use Cases
 
-### Admin — Dashboard (CU-01 to CU-08)
+### Admin — Dashboard (UC-01 to UC-08)
 
 | ID | Name | Description |
 |----|------|-------------|
-| CU-01 | Create a flag | Admin creates a new flag with name, description, and initial state (on/off) |
-| CU-02 | List flags | Admin views all flags with their current state and last-modified info |
-| CU-03 | Toggle a flag | Admin enables or disables a flag. Changes must reflect on clients within seconds |
-| CU-04 | Delete a flag | Admin removes a flag that is no longer needed |
-| CU-05 | View flag history | Admin sees who changed a flag, when, from what state to what, and optionally why |
-| CU-06 | Segment by percentage | Admin configures a flag to be active for a percentage of users (e.g., 10%). Evaluations must be sticky — same user always gets the same result |
-| CU-07 | Whitelist users | Admin activates a flag for specific user IDs (internal testing) |
-| CU-08 | View basic metrics | Admin sees how many times a flag was evaluated and how many users see each variant |
+| UC-01 | Create a flag | Admin creates a new flag with name, description, and initial state (on/off) |
+| UC-02 | List flags | Admin views all flags with their current state and last-modified info |
+| UC-03 | Toggle a flag | Admin enables or disables a flag. Changes must reflect on clients within seconds |
+| UC-04 | Delete a flag | Admin removes a flag that is no longer needed |
+| UC-05 | View flag history | Admin sees who changed a flag, when, from what state to what, and optionally why |
+| UC-06 | Segment by percentage | Admin configures a flag to be active for a percentage of users (e.g., 10%). Evaluations must be sticky — same user always gets the same result |
+| UC-07 | Whitelist users | Admin activates a flag for specific user IDs (internal testing) |
+| UC-08 | View basic metrics | Admin sees how many times a flag was evaluated and how many users see each variant |
 
-### Client — SDK (CU-09 to CU-10)
+### Client — SDK (UC-09 to UC-10)
 
 | ID | Name | Description |
 |----|------|-------------|
-| CU-09 | Evaluate by flag name | Client asks "is flag `new-checkout` active?" and receives boolean. No user context needed |
-| CU-10 | Evaluate with user context | Client asks "is flag `new-checkout` active for user `123`?" with percentage or whitelist targeting |
+| UC-09 | Evaluate by flag name | Client asks "is flag `new-checkout` active?" and receives boolean. No user context needed |
+| UC-10 | Evaluate with user context | Client asks "is flag `new-checkout` active for user `123`?" with percentage or whitelist targeting |
 
 ## 6. Scope: MVP vs Future
 
