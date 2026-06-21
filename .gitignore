@@ -15,6 +15,7 @@ apps/api/generated
 
 # Prisma compiled config/seed
 apps/api/prisma.config.js
+apps/api/prisma.config.js.map
 apps/api/prisma.config.d.ts
 apps/api/prisma/seed.js
 apps/api/prisma/seed.d.ts
