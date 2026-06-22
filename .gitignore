@@ -18,6 +18,7 @@ apps/api/prisma.config.js
 apps/api/prisma.config.js.map
 apps/api/prisma.config.d.ts
 apps/api/prisma/seed.js
+apps/api/prisma/seed.js.map
 apps/api/prisma/seed.d.ts
 
 # TypeScript incremental build info
