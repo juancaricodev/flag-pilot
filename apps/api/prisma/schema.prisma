@@ -24,7 +24,7 @@ model Flag {
 model AuditLog {
   id        String   @id @default(cuid())
   flagId    String
-  flag      Flag     @relation(fields: [flagId], references: [id])
+  flag      Flag     @relation(fields: [flagId], references: [id], onDelete: Cascade)
   action    String
   fromState String?
   toState   String?
@@ -35,7 +35,7 @@ model AuditLog {
 model Evaluation {
   id        String   @id @default(cuid())
   flagId    String
-  flag      Flag     @relation(fields: [flagId], references: [id])
+  flag      Flag     @relation(fields: [flagId], references: [id], onDelete: Cascade)
   userId    String?
   result    Boolean
   createdAt DateTime @default(now())

@@ -2,23 +2,23 @@
 
 ## Phase 1: Foundation
 
-- [ ] 1.1 Initialize pnpm workspace with `pnpm-workspace.yaml` and root `package.json`
-- [ ] 1.2 Create `packages/shared/` with TypeScript types: `Flag`, `AuditLogEntry`, `Evaluation`, `ApiResponse`
-- [ ] 1.3 Configure Turborepo (`turbo.json`) with build/lint/test pipelines
-- [ ] 1.4 Generate `apps/api/` with NestJS CLI, configure tsconfig paths
-- [ ] 1.5 Generate `apps/dashboard/` with Next.js CLI, configure App Router
-- [ ] 1.6 Set up Prisma: install, create `schema.prisma` with `Flag`, `AuditLog`, `Evaluation` models
-- [ ] 1.7 Run initial migration and create seed script with test data
+- [x] 1.1 Initialize pnpm workspace with `pnpm-workspace.yaml` and root `package.json`
+- [x] 1.2 Create `packages/shared/` with TypeScript types: `Flag`, `AuditLogEntry`, `Evaluation`, `ApiResponse`
+- [x] 1.3 Configure Turborepo (`turbo.json`) with build/lint/test pipelines
+- [x] 1.4 Generate `apps/api/` with NestJS CLI, configure tsconfig paths
+- [x] 1.5 Generate `apps/dashboard/` with Next.js CLI, configure App Router
+- [x] 1.6 Set up Prisma: install, create `schema.prisma` with `Flag`, `AuditLog`, `Evaluation` models
+- [x] 1.7 Run initial migration and create seed script with test data
 
 ## Phase 2: API — Flags CRUD
 
-- [ ] 2.1 Create `flags` module: controller, service, DTOs for `POST/GET/PATCH/DELETE /api/flags`
-- [ ] 2.2 Implement `FlagRepository` interface and `PrismaFlagRepository`
-- [ ] 2.3 Implement `CreateFlag` use case with duplicate name validation (UC-01)
-- [ ] 2.4 Implement `ListFlags` and `GetFlag` use cases (UC-02)
-- [ ] 2.5 Implement `ToggleFlag` use case — enable/disable (UC-03)
-- [ ] 2.6 Implement `UpdateFlag` use case — rollout percentage + whitelist (UC-06, UC-07)
-- [ ] 2.7 Implement `DeleteFlag` use case (UC-04)
+- [x] 2.1 Create `flags` module: controller, service, DTOs for `POST/GET/PATCH/DELETE /api/flags`
+- [x] 2.2 Implement `FlagRepository` interface and `PrismaFlagRepository`
+- [x] 2.3 Implement `CreateFlag` use case with duplicate name validation (UC-01)
+- [x] 2.4 Implement `ListFlags` and `GetFlag` use cases (UC-02)
+- [x] 2.5 Implement `ToggleFlag` use case — enable/disable (UC-03)
+- [x] 2.6 Implement `UpdateFlag` use case — rollout percentage + whitelist (UC-06, UC-07)
+- [x] 2.7 Implement `DeleteFlag` use case (UC-04)
 - [ ] 2.8 Wire audit logging on every flag mutation (UC-05)
 
 ## Phase 3: API — Evaluation

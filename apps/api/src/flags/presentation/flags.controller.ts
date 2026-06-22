@@ -2,7 +2,7 @@ import { Controller, Get, Post, Patch, Delete, Body, Param } from '@nestjs/commo
 import { FlagsService } from '../application/flags.service';
 import { CreateFlagDto } from './dtos/create-flag.dto';
 import { UpdateFlagDto } from './dtos/update-flag.dto';
-import type { Flag } from '@fp/shared';
+import type { Flag, AuditLogEntry } from '@fp/shared';
 
 @Controller('api/flags')
 export class FlagsController {
@@ -21,6 +21,11 @@ export class FlagsController {
   @Get(':id')
   findOne(@Param('id') id: string): Promise<Flag> {
     return this.flagsService.findOne(id);
+  }
+
+  @Get(':id/audit')
+  getAuditLogs(@Param('id') id: string): Promise<AuditLogEntry[]> {
+    return this.flagsService.getAuditLogs(id);
   }
 
   @Patch(':id')

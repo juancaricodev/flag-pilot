@@ -1,12 +1,16 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { AuditService } from '../../audit/application/audit.service';
 import { CreateFlagDto } from '../presentation/dtos/create-flag.dto';
 import { UpdateFlagDto } from '../presentation/dtos/update-flag.dto';
-import type { Flag } from '@fp/shared';
+import type { Flag, AuditLogEntry } from '@fp/shared';
 
 @Injectable()
 export class FlagsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+  ) {}
 
   async create(dto: CreateFlagDto): Promise<Flag> {
     const existing = await this.prisma.flag.findUnique({ where: { name: dto.name } });
@@ -22,7 +26,15 @@ export class FlagsService {
       },
     });
 
-    return this.toFlag(flag);
+    const result = this.toFlag(flag);
+
+    await this.audit.log({
+      flagId: flag.id,
+      action: 'CREATE',
+      toState: this.snapshot(result),
+    });
+
+    return result;
   }
 
   async findAll(): Promise<Flag[]> {
@@ -39,19 +51,51 @@ export class FlagsService {
   }
 
   async update(id: string, dto: UpdateFlagDto): Promise<Flag> {
-    await this.findOne(id);
+    const before = await this.findOne(id);
 
     const flag = await this.prisma.flag.update({
       where: { id },
       data: dto,
     });
 
-    return this.toFlag(flag);
+    const result = this.toFlag(flag);
+
+    const action = dto.enabled !== undefined ? 'TOGGLE' : 'UPDATE';
+
+    await this.audit.log({
+      flagId: id,
+      action,
+      fromState: this.snapshot(before),
+      toState: this.snapshot(result),
+    });
+
+    return result;
   }
 
   async remove(id: string): Promise<void> {
-    await this.findOne(id);
+    const before = await this.findOne(id);
+
+    await this.audit.log({
+      flagId: id,
+      action: 'DELETE',
+      fromState: this.snapshot(before),
+    });
+
     await this.prisma.flag.delete({ where: { id } });
+  }
+
+  async getAuditLogs(flagId: string): Promise<AuditLogEntry[]> {
+    return this.audit.findByFlagId(flagId);
+  }
+
+  private snapshot(flag: Flag): Record<string, unknown> {
+    return {
+      name: flag.name,
+      description: flag.description,
+      enabled: flag.enabled,
+      rolloutPct: flag.rolloutPct,
+      whitelist: flag.whitelist,
+    };
   }
 
   private toFlag(flag: {
