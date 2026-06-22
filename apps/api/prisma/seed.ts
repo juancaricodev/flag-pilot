@@ -30,6 +30,11 @@ async function main() {
   ];
 
   for (const flag of flags) {
+    const existing = await prisma.flag.findUnique({ where: { name: flag.name } });
+    if (existing) {
+      console.log(`  ⏭️  Skipped flag: ${flag.name} (already exists)`);
+      continue;
+    }
     await prisma.flag.create({ data: flag });
     console.log(`  ✅ Created flag: ${flag.name}`);
   }
