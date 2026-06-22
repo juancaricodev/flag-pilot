@@ -19,7 +19,7 @@
 - [x] 2.5 Implement `ToggleFlag` use case — enable/disable (UC-03)
 - [x] 2.6 Implement `UpdateFlag` use case — rollout percentage + whitelist (UC-06, UC-07)
 - [x] 2.7 Implement `DeleteFlag` use case (UC-04)
-- [ ] 2.8 Wire audit logging on every flag mutation (UC-05)
+- [x] 2.8 Wire audit logging on every flag mutation (UC-05)
 
 ## Phase 3: API — Evaluation
 
