@@ -104,3 +104,5 @@ export class EvaluationService {
     });
   }
 }
+
+const unusedVar = 'this should fail linting';
