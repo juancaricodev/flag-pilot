@@ -23,11 +23,11 @@
 
 ## Phase 3: API — Evaluation
 
-- [ ] 3.1 Implement `POST /api/evaluate` — evaluate by flag name, no user context (UC-09)
-- [ ] 3.2 Implement `POST /api/evaluate/context` — evaluate with userId, whitelist check, rollout hash (UC-10)
-- [ ] 3.3 Implement sticky rollout logic: `hashCode(userId + flagId) % 100 < rolloutPct`
+- [x] 3.1 Implement `POST /api/evaluate` — evaluate by flag name, no user context (UC-09)
+- [x] 3.2 Implement `POST /api/evaluate/context` — evaluate with userId, whitelist check, rollout hash (UC-10)
+- [x] 3.3 Implement sticky rollout logic: `hashCode(userId + flagId) % 100 < rolloutPct`
 - [ ] 3.4 Add Redis cache-aside layer with 30s TTL for evaluation results
-- [ ] 3.5 Record `Evaluation` event on every evaluation call (UC-08 metrics)
+- [x] 3.5 Record `Evaluation` event on every evaluation call (UC-08 metrics)
 
 ## Phase 4: API — Auth
 
