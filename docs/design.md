@@ -16,52 +16,52 @@ Monorepo with Turborepo + pnpm workspaces. Two applications (Next.js Dashboard, 
 
 ### 2.1 Monorepo Tool
 
-| Option | Decision |
-|--------|----------|
-| **Turborepo** | ✅ Selected |
-| Nx | ❌ Overkill for 2 apps, double learning curve |
+| Option        | Decision                                      |
+| ------------- | --------------------------------------------- |
+| **Turborepo** | ✅ Selected                                   |
+| Nx            | ❌ Overkill for 2 apps, double learning curve |
 
 **Rationale**: Turborepo is lightweight, integrates natively with pnpm workspaces, and comes from the Vercel ecosystem (Next.js). For a 2-app portfolio project, Nx adds unnecessary complexity.
 
 ### 2.2 ORM
 
-| Option | Decision |
-|--------|----------|
-| **Prisma** | ✅ Selected |
-| Drizzle | ❌ Assumes SQL knowledge, less mature |
+| Option     | Decision                              |
+| ---------- | ------------------------------------- |
+| **Prisma** | ✅ Selected                           |
+| Drizzle    | ❌ Assumes SQL knowledge, less mature |
 
 **Rationale**: Declarative schema as living documentation, auto-generated migrations, native type safety, Prisma Studio for debugging.
 
 ### 2.3 Evaluation Cache
 
-| Option | Decision |
-|--------|----------|
-| **Redis** | ✅ Selected |
-| No cache | ❌ Won't meet <50ms under load |
+| Option    | Decision                       |
+| --------- | ------------------------------ |
+| **Redis** | ✅ Selected                    |
+| No cache  | ❌ Won't meet <50ms under load |
 
 **Rationale**: Cache-aside pattern — if Redis is unavailable, fall back to PostgreSQL without breaking the system.
 
 ### 2.4 Backend Architecture
 
-| Option | Decision |
-|--------|----------|
-| **Screaming Architecture** | ✅ Selected (v1) |
-| Clean / Hexagonal | ⏳ Evaluate for v2 if complexity warrants it |
+| Option                     | Decision                                     |
+| -------------------------- | -------------------------------------------- |
+| **Screaming Architecture** | ✅ Selected (v1)                             |
+| Clean / Hexagonal          | ⏳ Evaluate for v2 if complexity warrants it |
 
 **Rationale**: Screaming Architecture organizes by domain (`flags/`, `audit/`, `auth/`) — the code screams what it does. It's simple, obvious, and sufficient for an MVP. If it grows, we can add internal layers without changing the folder structure.
 
 ### 2.5 Dashboard Authentication
 
-| Option | Decision |
-|--------|----------|
+| Option                    | Decision    |
+| ------------------------- | ----------- |
 | **JWT + httpOnly cookie** | ✅ Selected |
 
 **Rationale**: Stateless, simple, no DB sessions needed. For v1 with a single admin, it's sufficient. Refresh tokens can be added later if needed.
 
 ### 2.6 Frontend Rendering
 
-| Option | Decision |
-|--------|----------|
+| Option                 | Decision    |
+| ---------------------- | ----------- |
 | **Next.js App Router** | ✅ Selected |
 
 **Rationale**: Server Components for data fetching (flag lists), Client Components for interactivity (toggles, forms). Best of both worlds.
@@ -144,28 +144,28 @@ model Evaluation {
 
 ### Admin (Dashboard)
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/flags` | Create flag |
-| `GET` | `/api/flags` | List flags |
-| `GET` | `/api/flags/:id` | Get flag |
-| `PATCH` | `/api/flags/:id` | Update flag (toggle, %, whitelist) |
-| `DELETE` | `/api/flags/:id` | Delete flag |
-| `GET` | `/api/flags/:id/audit` | Change history |
+| Method   | Path                   | Description                        |
+| -------- | ---------------------- | ---------------------------------- |
+| `POST`   | `/api/flags`           | Create flag                        |
+| `GET`    | `/api/flags`           | List flags                         |
+| `GET`    | `/api/flags/:id`       | Get flag                           |
+| `PATCH`  | `/api/flags/:id`       | Update flag (toggle, %, whitelist) |
+| `DELETE` | `/api/flags/:id`       | Delete flag                        |
+| `GET`    | `/api/flags/:id/audit` | Change history                     |
 
 ### Evaluation (SDK)
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/evaluate` | Evaluate flag by name |
+| Method | Path                    | Description                     |
+| ------ | ----------------------- | ------------------------------- |
+| `POST` | `/api/evaluate`         | Evaluate flag by name           |
 | `POST` | `/api/evaluate/context` | Evaluate flag with user context |
 
 ### Auth
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/auth/login` | Sign in |
-| `POST` | `/api/auth/logout` | Sign out |
+| Method | Path               | Description |
+| ------ | ------------------ | ----------- |
+| `POST` | `/api/auth/login`  | Sign in     |
+| `POST` | `/api/auth/logout` | Sign out    |
 
 ---
 
@@ -197,11 +197,11 @@ SDK Client                    API (NestJS)                  Redis              P
 
 ## 7. Testing Strategy
 
-| Layer | What to Test | How |
-|-------|-------------|-----|
-| **Unit** | Services, evaluation logic (percentage, whitelist) | Jest, Prisma/Redis mocks |
-| **Integration** | REST endpoints, auth flow, DB queries | Supertest + testcontainers (PostgreSQL) |
-| **E2E** | Full Dashboard (login → create flag → toggle) | Playwright |
+| Layer           | What to Test                                       | How                                     |
+| --------------- | -------------------------------------------------- | --------------------------------------- |
+| **Unit**        | Services, evaluation logic (percentage, whitelist) | Jest, Prisma/Redis mocks                |
+| **Integration** | REST endpoints, auth flow, DB queries              | Supertest + testcontainers (PostgreSQL) |
+| **E2E**         | Full Dashboard (login → create flag → toggle)      | Playwright                              |
 
 ---
 
@@ -222,4 +222,4 @@ No data migration required (greenfield project). Rollout plan:
 - [ ] **Polling vs SSE** — How should the Dashboard reflect changes in real time? Evaluate Server-Sent Events vs simple polling.
 - [ ] **Prisma connect timeout** — Pool size configuration for PostgreSQL.
 - [ ] **Deploy target** — AWS (ECS? Lambda? EC2?) — decide later.
-- [ ] **Tests from day one** — Do we start with TDD or write tests after the MVP is working?
+- [x] **Tests from day one** — Resolved: YES. Unit tests for existing code written (37 tests, covering UC-01 through UC-10). TDD for all new code going forward.
