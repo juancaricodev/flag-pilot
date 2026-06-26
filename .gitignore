@@ -21,6 +21,9 @@ apps/api/prisma/seed.js
 apps/api/prisma/seed.js.map
 apps/api/prisma/seed.d.ts
 
+# Coverage output
+coverage
+
 # TypeScript incremental build info
 tsconfig.tsbuildinfo
 *.tsbuildinfo
