@@ -31,10 +31,10 @@
 
 ## Phase 4: API — Auth
 
-- [ ] 4.1 Implement `POST /api/auth/login` with email/password validation
-- [ ] 4.2 Generate JWT with `jsonwebtoken`, set as httpOnly cookie
+- [x] 4.1 Implement `POST /api/auth/login` with email/password validation
+- [x] 4.2 Generate JWT with `@nestjs/jwt`, set as httpOnly cookie (7d expiry)
 - [ ] 4.3 Create `AuthGuard` to protect admin routes
-- [ ] 4.4 Implement `POST /api/auth/logout` — clear cookie
+- [x] 4.4 Implement `POST /api/auth/logout` — clear cookie
 
 ## Phase 5: Dashboard
 
@@ -52,7 +52,7 @@
 
 ## Phase 7: Testing
 
-- [ ] 7.1 Unit tests for evaluation logic (whitelist, rollout, sticky hash)
-- [ ] 7.2 Unit tests for flags CRUD service
+- [x] 7.1 Unit tests for evaluation logic (whitelist, rollout, sticky hash) — 21 tests
+- [x] 7.2 Unit tests for flags CRUD service — 15 tests
 - [ ] 7.3 Integration tests for API endpoints (flags + evaluation)
 - [ ] 7.4 E2E test: login → create flag → toggle → verify evaluation
