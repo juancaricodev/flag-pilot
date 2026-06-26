@@ -1,11 +1,24 @@
 /// <reference types="node" />
 
 import { PrismaClient } from '../generated/prisma';
+import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('🌱 Seeding database...');
+
+  const adminEmail = 'admin@flagpilot.dev';
+  const existingAdmin = await prisma.admin.findUnique({ where: { email: adminEmail } });
+  if (!existingAdmin) {
+    const passwordHash = await bcrypt.hash('admin123', 10);
+    await prisma.admin.create({
+      data: { email: adminEmail, passwordHash },
+    });
+    console.log('  ✅ Created admin: admin@flagpilot.dev');
+  } else {
+    console.log('  ⏭️  Skipped admin: admin@flagpilot.dev (already exists)');
+  }
 
   const flags = [
     {
