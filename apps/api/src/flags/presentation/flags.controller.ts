@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../../auth/presentation/guards/auth.guard';
 import { FlagsService } from '../application/flags.service';
 import { CreateFlagDto } from './dtos/create-flag.dto';
 import { UpdateFlagDto } from './dtos/update-flag.dto';
 import type { Flag, AuditLogEntry } from '@fp/shared';
 
+@UseGuards(AuthGuard)
 @Controller('api/flags')
 export class FlagsController {
   constructor(private readonly flagsService: FlagsService) {}

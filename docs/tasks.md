@@ -33,7 +33,7 @@
 
 - [x] 4.1 Implement `POST /api/auth/login` with email/password validation
 - [x] 4.2 Generate JWT with `@nestjs/jwt`, set as httpOnly cookie (7d expiry)
-- [ ] 4.3 Create `AuthGuard` to protect admin routes
+- [x] 4.3 Create `AuthGuard` to protect admin routes
 - [x] 4.4 Implement `POST /api/auth/logout` — clear cookie
 
 ## Phase 5: Dashboard
