@@ -54,5 +54,5 @@
 
 - [x] 7.1 Unit tests for evaluation logic (whitelist, rollout, sticky hash) — 21 tests
 - [x] 7.2 Unit tests for flags CRUD service — 15 tests
-- [ ] 7.3 Integration tests for API endpoints (flags + evaluation)
+- [x] 7.3 Integration tests for API endpoints (evaluate: 7, auth: 5, flags CRUD: 13 = 25 tests)
 - [ ] 7.4 E2E test: login → create flag → toggle → verify evaluation
