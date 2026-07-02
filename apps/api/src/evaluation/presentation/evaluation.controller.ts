@@ -2,7 +2,7 @@ import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { EvaluationService } from '../application/evaluation.service';
 import type { EvaluationContextRequest, EvaluationRequest, EvaluationResponse } from '@fp/shared';
 
-@Controller('evaluate')
+@Controller('api/evaluate')
 export class EvaluationController {
   constructor(private readonly evaluationService: EvaluationService) {}
 
