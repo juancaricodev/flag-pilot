@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 
-import { login, logout } from '../auth';
+import { login, logout } from './auth';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
 
