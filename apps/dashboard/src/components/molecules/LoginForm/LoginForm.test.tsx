@@ -7,7 +7,7 @@ import { LoginForm } from './LoginForm';
 const mockLogin = jest.fn();
 const mockPush = jest.fn();
 
-jest.mock('@/app/actions/auth', () => ({
+jest.mock('@/actions/auth', () => ({
   login: (...args: unknown[]) => mockLogin(...args),
 }));
 

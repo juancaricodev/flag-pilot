@@ -2,7 +2,7 @@
 
 import { useActionState, startTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { login } from '@/app/actions/auth';
+import { login } from '@/actions/auth';
 import styles from './LoginForm.module.scss';
 
 const initialState = null as null | { success: false; error: string };
