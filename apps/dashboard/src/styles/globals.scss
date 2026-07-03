@@ -1,0 +1,115 @@
+// =============================================================================
+// Global Styles
+// =============================================================================
+
+@use 'tokens';
+@use 'mixins';
+
+// ── CSS Reset (opinionated, minimal) ────────────────────────────────────────
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-tab-size: 4;
+  tab-size: 4;
+  line-height: 1.5;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--text);
+  background-color: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// ── Links ───────────────────────────────────────────────────────────────────
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+// ── Headings ────────────────────────────────────────────────────────────────
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600;
+  line-height: var(--leading-tight);
+}
+
+// ── Buttons ─────────────────────────────────────────────────────────────────
+button {
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+// ── Inputs ──────────────────────────────────────────────────────────────────
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+// ── Images ──────────────────────────────────────────────────────────────────
+img {
+  display: block;
+  max-width: 100%;
+}
+
+// ── Lists ───────────────────────────────────────────────────────────────────
+ul,
+ol {
+  list-style: none;
+}
+
+// ── Scrollbar ───────────────────────────────────────────────────────────────
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: var(--radius-full);
+
+  &:hover {
+    background: var(--border-hover);
+  }
+}
+
+// ── Selection ───────────────────────────────────────────────────────────────
+::selection {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+// ── Focus visible ───────────────────────────────────────────────────────────
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+// ── Utility classes ─────────────────────────────────────────────────────────
+.sr-only {
+  @include mixins.visually-hidden;
+}

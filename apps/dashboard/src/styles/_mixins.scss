@@ -1,0 +1,74 @@
+// =============================================================================
+// Mixins
+// =============================================================================
+
+// ── Breakpoints ─────────────────────────────────────────────────────────────
+$breakpoints: (
+  sm: 640px,
+  md: 768px,
+  lg: 1024px,
+  xl: 1280px,
+) !default;
+
+@mixin respond-to($bp) {
+  @if map-has-key($breakpoints, $bp) {
+    @media (min-width: map-get($breakpoints, $bp)) {
+      @content;
+    }
+  } @else {
+    @warn "Unknown breakpoint `#{$bp}`. Available: #{map-keys($breakpoints)}.";
+  }
+}
+
+// ── Focus ring ──────────────────────────────────────────────────────────────
+@mixin focus-ring($color: var(--accent)) {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+
+  &:focus-visible {
+    outline-color: $color;
+    outline-width: 2px;
+  }
+}
+
+// ── Truncate text ───────────────────────────────────────────────────────────
+@mixin text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ── Visually hidden (accessible) ────────────────────────────────────────────
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+// ── Card container ──────────────────────────────────────────────────────────
+@mixin card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+// ── Flex center ─────────────────────────────────────────────────────────────
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// ── Transition preset ───────────────────────────────────────────────────────
+@mixin transition($properties: all, $duration: var(--transition-base)) {
+  transition-property: $properties;
+  transition-duration: $duration;
+  transition-timing-function: ease;
+}
