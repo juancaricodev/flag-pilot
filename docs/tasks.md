@@ -38,11 +38,11 @@
 
 ## Phase 5: Dashboard
 
-- [ ] 5.1 **Design System Foundation**
+- [x] 5.1 **Design System Foundation**
   - Install `sass`, create `src/styles/` with `_tokens.scss`, `_mixins.scss`, `globals.scss`
   - Update `RootLayout` — fonts, metadata, global styles
   - Remove Tailwind dependency (postcss, configs, boilerplate classes)
-- [ ] 5.2 **Auth Middleware**
+- [x] 5.2 **Auth Middleware**
   - Create `src/middleware.ts` — read httpOnly cookie, redirect to `/login` if missing
   - Configure `matcher` for protected routes
 - [ ] 5.3 **Login page**
