@@ -10,9 +10,21 @@ $breakpoints: (
   xl: 1280px,
 ) !default;
 
+// Mobile-first: apply styles from this breakpoint UP
 @mixin respond-to($bp) {
   @if map-has-key($breakpoints, $bp) {
     @media (min-width: map-get($breakpoints, $bp)) {
+      @content;
+    }
+  } @else {
+    @warn "Unknown breakpoint `#{$bp}`. Available: #{map-keys($breakpoints)}.";
+  }
+}
+
+// Desktop-first: apply styles from this breakpoint DOWN
+@mixin respond-down($bp) {
+  @if map-has-key($breakpoints, $bp) {
+    @media (max-width: (map-get($breakpoints, $bp) - 1px)) {
       @content;
     }
   } @else {
