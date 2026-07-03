@@ -45,7 +45,7 @@
 - [x] 5.2 **Auth Middleware**
   - Create `src/middleware.ts` — read httpOnly cookie, redirect to `/login` if missing
   - Configure `matcher` for protected routes
-- [ ] 5.3 **Login page**
+- [x] 5.3 **Login page**
   - Email/password form calling a Server Action
   - Server Action: POST `/api/auth/login` → extract JWT → set httpOnly cookie via `cookies().set()`
   - Redirect to `/flags` on success, show error message on failure
