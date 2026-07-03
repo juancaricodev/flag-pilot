@@ -38,32 +38,32 @@
 
 ## Phase 5: Dashboard
 
-- [ ] 5.0 **Design System Foundation**
+- [ ] 5.1 **Design System Foundation**
   - Install `sass`, create `src/styles/` with `_tokens.scss`, `_mixins.scss`, `globals.scss`
   - Update `RootLayout` — fonts, metadata, global styles
   - Remove Tailwind dependency (postcss, configs, boilerplate classes)
-- [ ] 5.1 **Auth Middleware**
+- [ ] 5.2 **Auth Middleware**
   - Create `src/middleware.ts` — read httpOnly cookie, redirect to `/login` if missing
   - Configure `matcher` for protected routes
-- [ ] 5.2 **Login page**
+- [ ] 5.3 **Login page**
   - Email/password form calling a Server Action
   - Server Action: POST `/api/auth/login` → extract JWT → set httpOnly cookie via `cookies().set()`
   - Redirect to `/flags` on success, show error message on failure
-- [ ] 5.3 **Flags list page** (Server Component)
+- [ ] 5.4 **Flags list page** (Server Component)
   - Server Component fetch to `GET /api/flags` — pass cookie via headers
   - Render grid of `FlagCard` molecules
   - `FlagCard` is `'use client'` only for the toggle button
-- [ ] 5.4 **Create / Edit flag form**
+- [ ] 5.5 **Create / Edit flag form**
   - Controlled form in `'use client'` component
   - Server Actions: `POST /api/flags` (create), `PATCH /api/flags/:id` (edit)
   - Validation: name uniqueness, rollout percentage 0–100, key constraints
-- [ ] 5.5 **Toggle switch** — inline enable/disable
+- [ ] 5.6 **Toggle switch** — inline enable/disable
   - Server Action: `PATCH /api/flags/:id { enabled: !flag.enabled }` — passes cookie from `cookies()`
   - `revalidateTag('flags')` after mutation to refresh server data
-- [ ] 5.6 **Audit log timeline**
+- [ ] 5.7 **Audit log timeline**
   - Server Component: fetch `GET /api/flags/:id/audit` with cookie
   - Timeline visual: ordered list of events (created, toggled, updated, deleted)
-- [ ] 5.7 **Metrics display**
+- [ ] 5.8 **Metrics display**
   - Server Component: fetch evaluation count from API
   - Display per-flag evaluation metrics and global summary
 
