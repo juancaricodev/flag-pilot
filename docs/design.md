@@ -1,7 +1,7 @@
 # Flag Pilot — Technical Design
 
-> **Status**: Draft v1
-> **Date**: 2026-06-19
+> **Status**: Draft v2
+> **Date**: 2026-07-02
 > **Based on**: PRD v1
 
 ---
@@ -66,6 +66,112 @@ Monorepo with Turborepo + pnpm workspaces. Two applications (Next.js Dashboard, 
 
 **Rationale**: Server Components for data fetching (flag lists), Client Components for interactivity (toggles, forms). Best of both worlds.
 
+### 2.7 Dashboard Mutations — Server Actions
+
+| Option                             | Decision                           |
+| ---------------------------------- | ---------------------------------- |
+| **Server Actions**                 | ✅ Selected                        |
+| Fetch from client + proxy          | ❌ mezcla responsabilidades        |
+| Server Actions + Server Components | ✅ toda la lógica de red en server |
+
+**Rationale**: Las Server Actions permiten que el componente visual llame a una función como si fuera local (`toggleFlag(id, enabled)`) sin saber que existe HTTP, cookies, o una API. Toda la lógica de red queda en el servidor. El browser jamás toca la API directamente — ni para leer ni para mutar.
+
+Esto elimina la necesidad de un proxy de Next.js (`rewrites`) porque toda comunicación con la API es server-to-server.
+
+**Flujo de una mutación:**
+
+```
+Browser                  Next.js Server                    API (3000)
+   │                          │                                │
+   │ Click toggle             │                                │
+   │ POST /_next/actions ────►│                                │
+   │ { id, args }             │   Server Action                │
+   │                          │   - lee cookie de la request   │
+   │                          │   - fetch PATCH /api/flags/:id │
+   │                          │   - Cookie: access_token=...   │
+   │                          │──────────────────────────────►│
+   │                          │◄───────── 200 ────────────────│
+   │◄── response ────────────│                                │
+```
+
+### 2.8 Design System
+
+| Option                        | Decision                         |
+| ----------------------------- | -------------------------------- |
+| **CSS Modules + SCSS**        | ✅ Selected                      |
+| Tailwind CSS                  | ❌ usuario detesta inline styles |
+| CSS-in-JS (styled-components) | ❌ runtime overhead, rejected    |
+
+**Rationale**: CSS Modules proveen scoping automático sin necesidad de BEM. SCSS da variables, mixins, nesting. Los tokens se definen como CSS Custom Properties (no SCSS variables) para permitir futura migración a Tailwind sin cambiar referencias, y para poder ser sobrescritos por tema (dark mode).
+
+**Atomic Design:**
+
+| Nivel         | Rol                                                       |
+| ------------- | --------------------------------------------------------- |
+| **Atoms**     | Componentes base: Button, Input, Badge, StatusDot, Toggle |
+| **Molecules** | Combinaciones de atoms: FlagCard, AuditEntry, LoginForm   |
+| **Organisms** | Módulos complejos: FlagList, AuditTimeline, MetricsPanel  |
+| **Templates** | Las páginas mismas (`app/`)                               |
+
+**Paleta — Slate & Sky:**
+
+```scss
+:root {
+  --bg: #ffffff;
+  --bg-subtle: #fafafa;
+  --bg-muted: #f5f5f5;
+  --border: #e5e5e5;
+  --border-hover: #d4d4d4;
+  --text: #171717;
+  --text-secondary: #525252;
+  --text-muted: #a3a3a3;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --warning: #d97706;
+}
+```
+
+### 2.9 Dashboard Auth Flow
+
+| Option                      | Decision                           |
+| --------------------------- | ---------------------------------- |
+| **JWT + httpOnly cookie**   | ✅ Selected                        |
+| Next.js Middleware check    | ✅ Selected                        |
+| Server Action for login     | ✅ Selected                        |
+| Proxy para compartir cookie | ❌ No necesario (server-to-server) |
+
+**Flujo de autenticación:**
+
+```
+                  ┌──────────────┐
+                  │  Request     │
+                  │  a /flags    │
+                  └──────┬───────┘
+                         │
+                  ┌──────▼───────┐
+                  │ Middleware   │
+                  │ lee cookie   │     NO
+                  │ access_token │────────► redirect /login
+                  └──────┬───────┘
+                         │ SÍ
+                  ┌──────▼───────┐
+                  │ Server       │
+                  │ Component    │
+                  │ lee cookie   │
+                  │ → fetch API  │
+                  └──────────────┘
+```
+
+**Login Server Action:**
+
+1. Client Component (form) llama a `login(email, password)` Server Action
+2. Server Action hace `POST /api/auth/login` a la API
+3. API responde con JWT
+4. Server Action setea httpOnly cookie via `cookies().set('access_token', jwt, { httpOnly: true, secure, sameSite })`
+5. Server Action retorna success → componente redirige a `/flags`
+
 ---
 
 ## 3. Project Structure
@@ -73,13 +179,40 @@ Monorepo with Turborepo + pnpm workspaces. Two applications (Next.js Dashboard, 
 ```
 flag-pilot/
 ├── apps/
-│   ├── dashboard/            # Next.js (Admin UI)
+│   ├── dashboard/                    # Next.js (Admin UI)
 │   │   └── src/
-│   │       └── app/
-│   │           ├── login/
-│   │           ├── flags/
-│   │           └── page.tsx
-│   └── api/                  # NestJS (REST API)
+│   │       ├── app/
+│   │       │   ├── login/            # Página de login
+│   │       │   │   └── page.tsx
+│   │       │   ├── flags/            # Páginas protegidas
+│   │       │   │   └── page.tsx
+│   │       │   ├── layout.tsx        # RootLayout
+│   │       │   └── page.tsx          # Home (redirect a /flags)
+│   │       ├── components/
+│   │       │   ├── atoms/            # Componentes base
+│   │       │   │   ├── Button/
+│   │       │   │   ├── Input/
+│   │       │   │   ├── Badge/
+│   │       │   │   ├── StatusDot/
+│   │       │   │   └── Toggle/
+│   │       │   ├── molecules/        # Combinaciones de atoms
+│   │       │   │   ├── FlagCard/
+│   │       │   │   ├── AuditEntry/
+│   │       │   │   └── LoginForm/
+│   │       │   └── organisms/        # Módulos complejos
+│   │       │       ├── FlagList/
+│   │       │       ├── AuditTimeline/
+│   │       │       └── MetricsPanel/
+│   │       ├── actions/              # Server Actions
+│   │       │   ├── auth.ts           # login / logout
+│   │       │   └── flags.ts          # create / toggle / update / delete
+│   │       ├── styles/
+│   │       │   ├── _tokens.scss      # CSS Custom Properties
+│   │       │   ├── _mixins.scss      # Mixins reutilizables
+│   │       │   └── globals.scss      # Reset + base styles
+│   │       ├── lib/                  # Utilidades (helpers, fetch wrappers)
+│   │       └── middleware.ts         # Auth middleware
+│   └── api/                          # NestJS (REST API)
 │       └── src/
 │           ├── flags/
 │           │   ├── flags.controller.ts
@@ -89,7 +222,7 @@ flag-pilot/
 │           ├── auth/
 │           └── evaluation/
 ├── packages/
-│   └── shared/               # Shared TypeScript types
+│   └── shared/                       # Shared TypeScript types
 │       └── src/
 │           ├── flag.ts
 │           ├── user.ts
@@ -219,7 +352,9 @@ No data migration required (greenfield project). Rollout plan:
 
 ## 9. Open Questions
 
-- [ ] **Polling vs SSE** — How should the Dashboard reflect changes in real time? Evaluate Server-Sent Events vs simple polling.
-- [ ] **Prisma connect timeout** — Pool size configuration for PostgreSQL.
-- [ ] **Deploy target** — AWS (ECS? Lambda? EC2?) — decide later.
-- [x] **Tests from day one** — Resolved: YES. Unit tests for existing code written (37 tests, covering UC-01 through UC-10). TDD for all new code going forward.
+- [ ] **Polling vs SSE** — How should the Dashboard reflect changes in real time? Evaluate Server-Sent Events vs simple polling. Post-MVP.
+- [ ] **Deploy target** — AWS (ECS? Lambda? EC2?) — decide when ready to deploy.
+- [x] **Tests from day one** — Resolved: YES. Unit + integration tests for existing code (62 tests). TDD for all new code.
+- [x] **Authentication method** — Resolved: JWT + httpOnly cookie. Login via Server Action in Dashboard.
+- [x] **Cache invalidation** — Resolved: TTL-based (30s cache-aside). Pub/sub evaluated as overkill for v1.
+- [x] **Server Actions vs fetch** — Resolved: Server Actions for all mutations. Server Components for data fetching. No proxy needed.

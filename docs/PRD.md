@@ -2,7 +2,7 @@
 
 > **Status**: Draft v1
 > **Author**: Juan Camilo Rico Orjuela
-> **Date**: 2026-06-18
+> **Date**: 2026-07-02
 
 ## 1. Problem Statement
 
@@ -40,22 +40,22 @@ Consumes the **Evaluation API** (directly or via SDK) to check whether a flag is
 
 ### Admin — Dashboard (UC-01 to UC-08)
 
-| ID | Name | Description |
-|----|------|-------------|
-| UC-01 | Create a flag | Admin creates a new flag with name, description, and initial state (on/off) |
-| UC-02 | List flags | Admin views all flags with their current state and last-modified info |
-| UC-03 | Toggle a flag | Admin enables or disables a flag. Changes must reflect on clients within seconds |
-| UC-04 | Delete a flag | Admin removes a flag that is no longer needed |
-| UC-05 | View flag history | Admin sees who changed a flag, when, from what state to what, and optionally why |
+| ID    | Name                  | Description                                                                                                                                    |
+| ----- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| UC-01 | Create a flag         | Admin creates a new flag with name, description, and initial state (on/off)                                                                    |
+| UC-02 | List flags            | Admin views all flags with their current state and last-modified info                                                                          |
+| UC-03 | Toggle a flag         | Admin enables or disables a flag. Changes must reflect on clients within seconds                                                               |
+| UC-04 | Delete a flag         | Admin removes a flag that is no longer needed                                                                                                  |
+| UC-05 | View flag history     | Admin sees who changed a flag, when, from what state to what, and optionally why                                                               |
 | UC-06 | Segment by percentage | Admin configures a flag to be active for a percentage of users (e.g., 10%). Evaluations must be sticky — same user always gets the same result |
-| UC-07 | Whitelist users | Admin activates a flag for specific user IDs (internal testing) |
-| UC-08 | View basic metrics | Admin sees how many times a flag was evaluated and how many users see each variant |
+| UC-07 | Whitelist users       | Admin activates a flag for specific user IDs (internal testing)                                                                                |
+| UC-08 | View basic metrics    | Admin sees how many times a flag was evaluated and how many users see each variant                                                             |
 
 ### Client — SDK (UC-09 to UC-10)
 
-| ID | Name | Description |
-|----|------|-------------|
-| UC-09 | Evaluate by flag name | Client asks "is flag `new-checkout` active?" and receives boolean. No user context needed |
+| ID    | Name                       | Description                                                                                        |
+| ----- | -------------------------- | -------------------------------------------------------------------------------------------------- |
+| UC-09 | Evaluate by flag name      | Client asks "is flag `new-checkout` active?" and receives boolean. No user context needed          |
 | UC-10 | Evaluate with user context | Client asks "is flag `new-checkout` active for user `123`?" with percentage or whitelist targeting |
 
 ## 6. Scope: MVP vs Future
@@ -79,8 +79,14 @@ Consumes the **Evaluation API** (directly or via SDK) to check whether a flag is
 - Client-side SDK (browser)
 - Multi-environment (dev / staging / prod)
 
-## 7. Open Questions
+## 7. Resolved Questions
 
-- [ ] Should the SDK use polling or server-sent events for flag updates?
-- [ ] Cache invalidation strategy when a flag is toggled — TTL vs pub/sub?
-- [ ] Authentication method for the dashboard (session? API key? JWT?)
+- [x] **Authentication method** — JWT + httpOnly cookie via Server Action login. Resolved in Design §2.9.
+- [x] **Cache invalidation** — TTL-based cache-aside (30s). Pub/sub evaluated as overkill for MVP. Resolved in Design §2.3.
+- [x] **Dashboard mutations** — Server Actions, not client-side fetch. Resolved in Design §2.7.
+- [x] **Styling approach** — CSS Modules + SCSS with Atomic Design. No Tailwind. Resolved in Design §2.8.
+
+## 8. Open Questions
+
+- [ ] Should the SDK use polling or server-sent events for flag updates? (Post-MVP)
+- [ ] Deploy target for production?
