@@ -68,25 +68,25 @@ Monorepo with Turborepo + pnpm workspaces. Two applications (Next.js Dashboard, 
 
 ### 2.7 Dashboard Mutations — Server Actions
 
-| Option                             | Decision                           |
-| ---------------------------------- | ---------------------------------- |
-| **Server Actions**                 | ✅ Selected                        |
-| Fetch from client + proxy          | ❌ mezcla responsabilidades        |
-| Server Actions + Server Components | ✅ toda la lógica de red en server |
+| Option                             | Decision                       |
+| ---------------------------------- | ------------------------------ |
+| **Server Actions**                 | ✅ Selected                    |
+| Fetch from client + proxy          | ❌ mixes responsibilities      |
+| Server Actions + Server Components | ✅ all network logic on server |
 
-**Rationale**: Las Server Actions permiten que el componente visual llame a una función como si fuera local (`toggleFlag(id, enabled)`) sin saber que existe HTTP, cookies, o una API. Toda la lógica de red queda en el servidor. El browser jamás toca la API directamente — ni para leer ni para mutar.
+**Rationale**: Server Actions allow the visual component to call a function as if it were local (`toggleFlag(id, enabled)`) without knowing about HTTP, cookies, or an API. All network logic resides on the server. The browser never touches the API directly — neither for reads nor for mutations.
 
-Esto elimina la necesidad de un proxy de Next.js (`rewrites`) porque toda comunicación con la API es server-to-server.
+This eliminates the need for a Next.js proxy (`rewrites`) because all API communication is server-to-server.
 
-**Flujo de una mutación:**
+**Mutation flow:**
 
 ```
 Browser                  Next.js Server                    API (3000)
    │                          │                                │
    │ Click toggle             │                                │
    │ POST /_next/actions ────►│                                │
-   │ { id, args }             │   Server Action                │
-   │                          │   - lee cookie de la request   │
+    │ { id, args }             │   Server Action                │
+   │                          │   - reads cookie from request  │
    │                          │   - fetch PATCH /api/flags/:id │
    │                          │   - Cookie: access_token=...   │
    │                          │──────────────────────────────►│
@@ -96,24 +96,24 @@ Browser                  Next.js Server                    API (3000)
 
 ### 2.8 Design System
 
-| Option                        | Decision                         |
-| ----------------------------- | -------------------------------- |
-| **CSS Modules + SCSS**        | ✅ Selected                      |
-| Tailwind CSS                  | ❌ usuario detesta inline styles |
-| CSS-in-JS (styled-components) | ❌ runtime overhead, rejected    |
+| Option                        | Decision                                                        |
+| ----------------------------- | --------------------------------------------------------------- |
+| **CSS Modules + SCSS**        | ✅ Selected                                                     |
+| Tailwind CSS                  | ❌ Rejected — CSS Modules preferred over utility-first approach |
+| CSS-in-JS (styled-components) | ❌ runtime overhead, rejected                                   |
 
-**Rationale**: CSS Modules proveen scoping automático sin necesidad de BEM. SCSS da variables, mixins, nesting. Los tokens se definen como CSS Custom Properties (no SCSS variables) para permitir futura migración a Tailwind sin cambiar referencias, y para poder ser sobrescritos por tema (dark mode).
+**Rationale**: CSS Modules provide automatic scoping without BEM. SCSS provides variables, mixins, and nesting. Tokens are defined as CSS Custom Properties (not SCSS variables) to allow future migration to Tailwind without changing references, and to be overridable by theme (dark mode).
 
 **Atomic Design:**
 
-| Nivel         | Rol                                                       |
-| ------------- | --------------------------------------------------------- |
-| **Atoms**     | Componentes base: Button, Input, Badge, StatusDot, Toggle |
-| **Molecules** | Combinaciones de atoms: FlagCard, AuditEntry, LoginForm   |
-| **Organisms** | Módulos complejos: FlagList, AuditTimeline, MetricsPanel  |
-| **Templates** | Las páginas mismas (`app/`)                               |
+| Level         | Role                                                     |
+| ------------- | -------------------------------------------------------- |
+| **Atoms**     | Base components: Button, Input, Badge, StatusDot, Toggle |
+| **Molecules** | Atom combinations: FlagCard, AuditEntry, LoginForm       |
+| **Organisms** | Complex modules: FlagList, AuditTimeline, MetricsPanel   |
+| **Templates** | The pages themselves (`app/`)                            |
 
-**Paleta — Slate & Sky:**
+**Palette — Slate & Sky:**
 
 ```scss
 :root {
@@ -135,42 +135,42 @@ Browser                  Next.js Server                    API (3000)
 
 ### 2.9 Dashboard Auth Flow
 
-| Option                      | Decision                           |
-| --------------------------- | ---------------------------------- |
-| **JWT + httpOnly cookie**   | ✅ Selected                        |
-| Next.js Middleware check    | ✅ Selected                        |
-| Server Action for login     | ✅ Selected                        |
-| Proxy para compartir cookie | ❌ No necesario (server-to-server) |
+| Option                    | Decision                         |
+| ------------------------- | -------------------------------- |
+| **JWT + httpOnly cookie** | ✅ Selected                      |
+| Next.js Middleware check  | ✅ Selected                      |
+| Server Action for login   | ✅ Selected                      |
+| Proxy for sharing cookie  | ❌ Not needed (server-to-server) |
 
-**Flujo de autenticación:**
+**Authentication flow:**
 
 ```
-                  ┌──────────────┐
-                  │  Request     │
-                  │  a /flags    │
-                  └──────┬───────┘
-                         │
-                  ┌──────▼───────┐
-                  │ Middleware   │
-                  │ lee cookie   │     NO
-                  │ access_token │────────► redirect /login
-                  └──────┬───────┘
-                         │ SÍ
-                  ┌──────▼───────┐
-                  │ Server       │
-                  │ Component    │
-                  │ lee cookie   │
-                  │ → fetch API  │
-                  └──────────────┘
+                   ┌──────────────┐
+                   │  Request     │
+                   │  to /flags   │
+                   └──────┬───────┘
+                          │
+                   ┌──────▼───────┐
+                   │ Middleware   │
+                   │ reads cookie │     NO
+                   │ access_token │────────► redirect /login
+                   └──────┬───────┘
+                          │ YES
+                   ┌──────▼───────┐
+                   │ Server       │
+                   │ Component    │
+                   │ reads cookie │
+                   │ → fetch API  │
+                   └──────────────┘
 ```
 
 **Login Server Action:**
 
-1. Client Component (form) llama a `login(email, password)` Server Action
-2. Server Action hace `POST /api/auth/login` a la API
-3. API responde con JWT
-4. Server Action setea httpOnly cookie via `cookies().set('access_token', jwt, { httpOnly: true, secure, sameSite })`
-5. Server Action retorna success → componente redirige a `/flags`
+1. Client Component (form) calls `login(email, password)` Server Action
+2. Server Action performs `POST /api/auth/login` to the API
+3. API responds with JWT
+4. Server Action sets httpOnly cookie via `cookies().set('access_token', jwt, { httpOnly: true, secure, sameSite })`
+5. Server Action returns success → component redirects to `/flags`
 
 ---
 
@@ -182,24 +182,24 @@ flag-pilot/
 │   ├── dashboard/                    # Next.js (Admin UI)
 │   │   └── src/
 │   │       ├── app/
-│   │       │   ├── login/            # Página de login
-│   │       │   │   └── page.tsx
-│   │       │   ├── flags/            # Páginas protegidas
+│   │   │   ├── login/            # Login page
+│   │   │   │   └── page.tsx
+│   │   │   ├── flags/            # Protected pages
 │   │       │   │   └── page.tsx
 │   │       │   ├── layout.tsx        # RootLayout
-│   │       │   └── page.tsx          # Home (redirect a /flags)
+│   │       │   └── page.tsx          # Home (redirect to /flags)
 │   │       ├── components/
-│   │       │   ├── atoms/            # Componentes base
+│   │       │   ├── atoms/            # Base components
 │   │       │   │   ├── Button/
 │   │       │   │   ├── Input/
 │   │       │   │   ├── Badge/
 │   │       │   │   ├── StatusDot/
 │   │       │   │   └── Toggle/
-│   │       │   ├── molecules/        # Combinaciones de atoms
+│   │       │   ├── molecules/        # Atom combinations
 │   │       │   │   ├── FlagCard/
 │   │       │   │   ├── AuditEntry/
 │   │       │   │   └── LoginForm/
-│   │       │   └── organisms/        # Módulos complejos
+│   │       │   └── organisms/        # Complex modules
 │   │       │       ├── FlagList/
 │   │       │       ├── AuditTimeline/
 │   │       │       └── MetricsPanel/
@@ -208,9 +208,9 @@ flag-pilot/
 │   │       │   └── flags.ts          # create / toggle / update / delete
 │   │       ├── styles/
 │   │       │   ├── _tokens.scss      # CSS Custom Properties
-│   │       │   ├── _mixins.scss      # Mixins reutilizables
+│   │       │   ├── _mixins.scss      # Reusable mixins
 │   │       │   └── globals.scss      # Reset + base styles
-│   │       ├── lib/                  # Utilidades (helpers, fetch wrappers)
+│   │   ├── lib/                  # Utilities (helpers, fetch wrappers)
 │   │       └── middleware.ts         # Auth middleware
 │   └── api/                          # NestJS (REST API)
 │       └── src/
