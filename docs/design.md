@@ -172,6 +172,15 @@ Browser                  Next.js Server                    API (3000)
 4. Server Action sets httpOnly cookie via `cookies().set('access_token', jwt, { httpOnly: true, secure, sameSite })`
 5. Server Action returns success → component redirects to `/flags`
 
+### 2.10 Database Naming Convention
+
+| Convention     | Decision                             |
+| -------------- | ------------------------------------ |
+| **snake_case** | ✅ Selected (tables + columns in DB) |
+| camelCase      | ✅ Selected (TypeScript Prisma API)  |
+
+**Rationale**: PostgreSQL convention dictates `snake_case` for schema objects (`flags`, `created_at`, `rollout_pct`). Prisma's `@map()` (column) and `@@map()` (table) directives bridge the gap — the TypeScript API stays in idiomatic `camelCase` while the actual SQL uses `snake_case`. This means `prisma.flag.findMany()` generates SQL against the `flags` table, and `flag.createdAt` maps to the `created_at` column. Zero runtime overhead, no manual SQL writing needed.
+
 ---
 
 ## 3. Project Structure
@@ -236,38 +245,55 @@ flag-pilot/
 
 ## 4. Data Model (Prisma)
 
+> **Naming convention**: Database tables and columns use `snake_case` (PostgreSQL convention). Prisma `@map`/`@@map` directives bridge the gap — the TypeScript API stays in `camelCase` while the actual SQL schema uses `snake_case`.
+
 ```prisma
+model Admin {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("admins")
+}
+
 model Flag {
   id          String       @id @default(cuid())
   name        String       @unique
   description String?
   enabled     Boolean      @default(false)
-  rolloutPct  Int          @default(0)       // 0-100
-  whitelist   String[]                       // user IDs
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  rolloutPct  Int          @default(0)       @map("rollout_pct")   // 0-100
+  whitelist   String[]
+  createdAt   DateTime     @default(now())   @map("created_at")
+  updatedAt   DateTime     @updatedAt        @map("updated_at")
   audits      AuditLog[]
   evaluations Evaluation[]
+
+  @@map("flags")
 }
 
 model AuditLog {
   id        String   @id @default(cuid())
-  flagId    String
-  flag      Flag     @relation(fields: [flagId], references: [id])
-  action    String                     // "CREATE" | "TOGGLE" | "UPDATE" | "DELETE"
-  fromState String?
-  toState   String?
+  flagId    String   @map("flag_id")
+  flag      Flag     @relation(fields: [flagId], references: [id], onDelete: Cascade)
+  action    String                                          // "CREATE" | "TOGGLE" | "UPDATE" | "DELETE"
+  fromState String?  @map("from_state")
+  toState   String?  @map("to_state")
   reason    String?
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("audit_logs")
 }
 
 model Evaluation {
   id        String   @id @default(cuid())
-  flagId    String
-  flag      Flag     @relation(fields: [flagId], references: [id])
-  userId    String?
+  flagId    String   @map("flag_id")
+  flag      Flag     @relation(fields: [flagId], references: [id], onDelete: Cascade)
+  userId    String?  @map("user_id")
   result    Boolean
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("evaluations")
 }
 ```
 
