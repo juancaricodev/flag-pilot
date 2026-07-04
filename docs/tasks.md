@@ -42,17 +42,23 @@
   - Install `sass`, create `src/styles/` with `_tokens.scss`, `_mixins.scss`, `globals.scss`
   - Update `RootLayout` — fonts, metadata, global styles
   - Remove Tailwind dependency (postcss, configs, boilerplate classes)
-- [x] 5.2 **Auth Middleware**
-  - Create `src/middleware.ts` — read httpOnly cookie, redirect to `/login` if missing
+- [x] 5.2 **Auth proxy**
+  - Create `src/proxy.ts` (Next.js 16 convention, replaces deprecated `middleware.ts`)
+  - Read httpOnly cookie, redirect to `/login` if missing on protected routes
   - Configure `matcher` for protected routes
 - [x] 5.3 **Login page**
   - Email/password form calling a Server Action
   - Server Action: POST `/api/auth/login` → extract JWT → set httpOnly cookie via `cookies().set()`
   - Redirect to `/flags` on success, show error message on failure
-- [ ] 5.4 **Flags list page** (Server Component)
+- [x] 5.4 **Flags list page** (Server Component)
   - Server Component fetch to `GET /api/flags` — pass cookie via headers
   - Render grid of `FlagCard` molecules
-  - `FlagCard` is `'use client'` only for the toggle button
+  - `FlagCard` is `'use client'` for the toggle button (pending 5.6)
+- [ ] 5.4a **Navigation + Atom components**
+  - App sidebar: links to `/flags`, `/audit`, `/metrics`, logout button
+  - RootLayout update: add sidebar shell for authenticated routes
+  - Atom components: `Button`, `Badge`, `StatusDot`, `Input`
+  - All atoms with SCSS modules, types, and tests
 - [ ] 5.5 **Create / Edit flag form**
   - Controlled form in `'use client'` component
   - Server Actions: `POST /api/flags` (create), `PATCH /api/flags/:id` (edit)
