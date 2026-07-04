@@ -2,6 +2,8 @@
 // Mixins
 // =============================================================================
 
+@use 'sass:map';
+
 // ── Breakpoints ─────────────────────────────────────────────────────────────
 $breakpoints: (
   sm: 640px,
@@ -12,23 +14,23 @@ $breakpoints: (
 
 // Mobile-first: apply styles from this breakpoint UP
 @mixin respond-to($bp) {
-  @if map-has-key($breakpoints, $bp) {
-    @media (min-width: map-get($breakpoints, $bp)) {
+  @if map.has-key($breakpoints, $bp) {
+    @media (min-width: map.get($breakpoints, $bp)) {
       @content;
     }
   } @else {
-    @warn "Unknown breakpoint `#{$bp}`. Available: #{map-keys($breakpoints)}.";
+    @warn "Unknown breakpoint `#{$bp}`. Available: #{map.keys($breakpoints)}.";
   }
 }
 
 // Desktop-first: apply styles from this breakpoint DOWN
 @mixin respond-down($bp) {
-  @if map-has-key($breakpoints, $bp) {
-    @media (max-width: (map-get($breakpoints, $bp) - 1px)) {
+  @if map.has-key($breakpoints, $bp) {
+    @media (max-width: (map.get($breakpoints, $bp) - 1px)) {
       @content;
     }
   } @else {
-    @warn "Unknown breakpoint `#{$bp}`. Available: #{map-keys($breakpoints)}.";
+    @warn "Unknown breakpoint `#{$bp}`. Available: #{map.keys($breakpoints)}.";
   }
 }
 

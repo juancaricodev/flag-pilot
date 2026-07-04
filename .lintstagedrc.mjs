@@ -10,9 +10,13 @@ export default {
   'apps/api/test/**/*.ts': (filenames) => [
     `prettier --write ${filenames.join(' ')}`,
   ],
-  'apps/dashboard/**/*.{ts,tsx}': (filenames) => [
-    `prettier --write ${filenames.join(' ')}`,
-    `pnpm --filter dashboard exec eslint --fix ${filenames.join(' ')}`,
-  ],
+  'apps/dashboard/**/*.{ts,tsx}': (filenames) => {
+    const filtered = filenames.filter((f) => !f.endsWith('.d.ts'));
+    if (filtered.length === 0) return [];
+    return [
+      `prettier --write ${filtered.join(' ')}`,
+      `pnpm --filter dashboard exec eslint --fix ${filtered.join(' ')}`,
+    ];
+  },
   '*.{json,md,yaml}': ['prettier --write'],
 };
