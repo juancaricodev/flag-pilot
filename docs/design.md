@@ -138,7 +138,7 @@ Browser                  Next.js Server                    API (3000)
 | Option                    | Decision                         |
 | ------------------------- | -------------------------------- |
 | **JWT + httpOnly cookie** | ✅ Selected                      |
-| Next.js Middleware check  | ✅ Selected                      |
+| Next.js proxy check       | ✅ Selected                      |
 | Server Action for login   | ✅ Selected                      |
 | Proxy for sharing cookie  | ❌ Not needed (server-to-server) |
 
@@ -151,7 +151,7 @@ Browser                  Next.js Server                    API (3000)
                    └──────┬───────┘
                           │
                    ┌──────▼───────┐
-                   │ Middleware   │
+                   │ Proxy        │
                    │ reads cookie │     NO
                    │ access_token │────────► redirect /login
                    └──────┬───────┘
@@ -220,7 +220,7 @@ flag-pilot/
 │   │       │   ├── _mixins.scss      # Reusable mixins
 │   │       │   └── globals.scss      # Reset + base styles
 │   │   ├── lib/                  # Utilities (helpers, fetch wrappers)
-│   │       └── middleware.ts         # Auth middleware
+│   │       └── proxy.ts              # Auth proxy (Next.js 16)
 │   └── api/                          # NestJS (REST API)
 │       └── src/
 │           ├── flags/
