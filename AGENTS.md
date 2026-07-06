@@ -131,22 +131,30 @@ Rules:
 
 ## SDD Collaboration Protocol
 
-The agent MUST NOT advance to the next SDD phase without human approval:
+The orchestrator (this agent) DELEGATES every SDD phase to the appropriate sub-agent (`sdd-*`). The orchestrator NEVER writes code or documentation directly — it coordinates, presents results, and waits for human approval.
 
-| #   | Phase       | Action                                             | Human needed?                                      |
-| --- | ----------- | -------------------------------------------------- | -------------------------------------------------- |
-| 1   | **Explore** | Investigate codebase, present findings             | Present findings, WAIT for confirmation            |
-| 2   | **Propose** | Write proposal with intent + scope + approach      | Show proposal, WAIT for approval before next phase |
-| 3   | **Spec**    | Write spec with Given/When/Then scenarios          | Show spec, WAIT for approval before next phase     |
-| 4   | **Design**  | Write technical design with architecture decisions | Show design, WAIT for approval before next phase   |
-| 5   | **Tasks**   | Break down into numbered tasks                     | Show tasks, WAIT for approval before next phase    |
-| 6   | **Apply**   | Write code, tests, verify                          | Only after tasks approved                          |
-| 7   | **Verify**  | Run tests, typecheck, show results                 | Show results, do NOT skip ahead                    |
-| 8   | **Archive** | Move artifacts, sync docs                          | Only with explicit confirmation                    |
+### Orchestrator role
 
-**Rule: "Show then wait"** — the agent presents the output of each phase and pauses. Moving to the next phase without human approval is a violation of this protocol.
+1. Launch the right sub-agent for the phase (e.g., `sdd-propose`, `sdd-spec`)
+2. Present the sub-agent's result to the human
+3. Wait for explicit approval before proceeding to the next phase
+4. NEVER skip phases, write artifacts manually, or advance without approval
 
-Exceptions:
+### Phase flow
 
-- If the user explicitly says "seguí adelante" / "keep going without asking" / "dame todo", the agent MAY proceed without pausing at each step
-- If the user says "hace todo con SDD" or similar, clarify whether they want the full cycle or phase-by-phase approval
+| #   | Phase       | Sub-agent     | How it works                                             |
+| --- | ----------- | ------------- | -------------------------------------------------------- |
+| 1   | **Propose** | `sdd-propose` | Launch sub-agent → present result → WAIT for approval    |
+| 2   | **Spec**    | `sdd-spec`    | Launch sub-agent → present result → WAIT for approval    |
+| 3   | **Design**  | `sdd-design`  | Launch sub-agent → present result → WAIT for approval    |
+| 4   | **Tasks**   | `sdd-tasks`   | Launch sub-agent → present result → WAIT for approval    |
+| 5   | **Apply**   | `sdd-apply`   | Launch sub-agent ONLY after tasks approved               |
+| 6   | **Verify**  | `sdd-verify`  | Launch sub-agent → present results → WAIT before archive |
+| 7   | **Archive** | `sdd-archive` | Launch sub-agent ONLY with explicit confirmation         |
+
+**Rule: "Delegate, present, wait"** — the orchestrator delegates the work to a sub-agent, presents the result, and pauses. Moving to the next phase without human approval is a violation of this protocol.
+
+### Exceptions
+
+- If the human explicitly says "seguí adelante" / "keep going without asking" / "dame todo", the orchestrator MAY skip the wait between phases
+- If the human says "hace todo con SDD", the orchestrator MUST clarify: "¿Querés que lo haga fase por fase con aprobación, o todo de una y te muestro el resultado final?"
