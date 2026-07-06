@@ -7,7 +7,8 @@ import { toggleFlag } from './flags';
 // ── Mocks ──────────────────────────────────────────────────────────────────
 
 const mockCookieGet = jest.fn();
-const mockRevalidateTag = jest.fn();
+const mockUpdateTag = jest.fn();
+const mockRefresh = jest.fn();
 
 jest.mock('next/headers', () => ({
   cookies: jest.fn(() => ({
@@ -16,7 +17,8 @@ jest.mock('next/headers', () => ({
 }));
 
 jest.mock('next/cache', () => ({
-  revalidateTag: (...args: unknown[]) => mockRevalidateTag(...args),
+  updateTag: (...args: unknown[]) => mockUpdateTag(...args),
+  refresh: (...args: unknown[]) => mockRefresh(...args),
 }));
 
 const originalFetch = globalThis.fetch;
@@ -83,13 +85,14 @@ describe('toggleFlag', () => {
     expect(result).toEqual({ success: true });
   });
 
-  it('calls revalidateTag("flags", "max") on success', async () => {
+  it('calls updateTag("flags") and refresh() on success', async () => {
     mockCookieGet.mockReturnValue({ value: 'jwt-token-abc' });
     mockFetchSuccess();
 
     await toggleFlag('flag-1', true);
 
-    expect(mockRevalidateTag).toHaveBeenCalledWith('flags', 'max');
+    expect(mockUpdateTag).toHaveBeenCalledWith('flags');
+    expect(mockRefresh).toHaveBeenCalled();
   });
 
   it('returns error message from API on 4xx/5xx', async () => {

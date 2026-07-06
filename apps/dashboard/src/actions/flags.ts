@@ -1,7 +1,7 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { revalidateTag } from 'next/cache';
+import { updateTag, refresh } from 'next/cache';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
@@ -31,7 +31,8 @@ export async function toggleFlag(
       return { error: body?.message ?? 'Failed to toggle flag' };
     }
 
-    revalidateTag('flags', 'max');
+    updateTag('flags');
+    refresh();
     return { success: true };
   } catch {
     return { error: 'Failed to toggle flag' };
