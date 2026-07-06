@@ -1,0 +1,66 @@
+# openspec/config.yaml
+schema: spec-driven
+
+context: |
+  Tech stack: Turborepo + pnpm 10 | NestJS 11 + Prisma 6 + PostgreSQL | Next.js 16 + React 19 + Sass
+  Architecture: Modular monolith (API) + Atomic Design (Dashboard) + Hexagonal-ish (flags module)
+  Testing: Jest 30 (both apps) + @testing-library/react (Dashboard) + supertest + testcontainers (API)
+  Style: ESLint + Prettier + TypeScript strict + Husky/lint-staged
+
+strict_tdd: true
+
+testing:
+  runner:
+    command: 'pnpm test'
+    framework: 'Jest 30'
+  layers:
+    unit:
+      available: true
+      tool: 'Jest 30'
+    integration:
+      available: true
+      tool: '@testing-library/react (Dashboard) / NestJS Testing (API)'
+    e2e:
+      available: true
+      tool: 'supertest + testcontainers (API) / Playwright planned post-MVP (Dashboard)'
+  coverage:
+    available: true
+    command: 'pnpm --filter api test:cov'
+  quality:
+    linter: 'ESLint (both apps)'
+    type_checker: 'TypeScript strict (both apps)'
+    formatter: 'Prettier'
+    hooks: 'Husky + lint-staged'
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Identify affected modules/packages (api, dashboard, shared)
+    - Reference the relevant docs/ domain spec
+  specs:
+    - Use Given/When/Then format for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+    - Reference UC codes from docs/specs.md
+  design:
+    - Include data flow for complex operations
+    - Document architecture decisions with rationale
+    - Reference existing docs/design.md for consistency
+  tasks:
+    - Group tasks by app (api, dashboard) and layer
+    - Use hierarchical numbering (1.1, 1.2, etc.)
+    - Keep tasks completable in one session
+  apply:
+    - Follow existing code patterns and conventions
+    - Load relevant project skills (skills/ directory)
+    - Server Actions for all mutations in Dashboard
+    - CSS Modules + SCSS for styling (no Tailwind)
+    - Atomic Design: atoms/molecules/organisms
+    - snake_case DB, camelCase TypeScript
+  verify:
+    test_command: 'pnpm test'
+    build_command: 'pnpm build'
+    coverage_threshold: 0
+  archive:
+    - Merge delta specs into docs/specs.md
+    - Update docs/design.md if architecture changed
+    - Update docs/tasks.md mark progress
