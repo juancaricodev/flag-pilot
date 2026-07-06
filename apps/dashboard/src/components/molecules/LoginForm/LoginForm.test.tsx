@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LoginForm } from './LoginForm';
 
@@ -81,6 +81,21 @@ describe('LoginForm', () => {
     const formData = mockLogin.mock.calls[0][1];
     expect(formData.get('email')).toBe('admin@example.com');
     expect(formData.get('password')).toBe('password123');
+  });
+
+  it('redirects to /flags on successful login', async () => {
+    mockLogin.mockResolvedValue({ success: true });
+
+    const user = userEvent.setup();
+    render(<LoginForm />);
+
+    await user.type(screen.getByLabelText('Email'), 'admin@example.com');
+    await user.type(screen.getByLabelText('Password'), 'password123');
+    await user.click(screen.getByRole('button', { name: 'Sign in' }));
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/flags');
+    });
   });
 
   it('shows loading state while submitting', async () => {

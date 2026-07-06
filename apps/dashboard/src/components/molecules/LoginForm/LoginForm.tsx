@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, startTransition } from 'react';
+import { useActionState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { login } from '@/actions/auth';
 import { Input, Button } from '@/components/atoms';
@@ -13,12 +13,11 @@ export function LoginForm() {
   const [state, formAction, isPending] = useActionState(login, initialState);
 
   // Handle successful login — redirect to flags
-  if (state?.success) {
-    // Use startTransition to avoid React warning during render
-    startTransition(() => {
+  useEffect(() => {
+    if (state?.success) {
       router.push('/flags');
-    });
-  }
+    }
+  }, [state, router]);
 
   return (
     <div className={styles.container}>
