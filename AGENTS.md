@@ -17,6 +17,7 @@ Use these skills for detailed patterns on-demand:
 | Skill                  | Description                                                        | URL                                              |
 | ---------------------- | ------------------------------------------------------------------ | ------------------------------------------------ |
 | `flag-pilot-dashboard` | Atomic Design, CSS Modules, Server Actions, Next.js 16 conventions | [SKILL.md](skills/flag-pilot-dashboard/SKILL.md) |
+| `flag-pilot-api`       | NestJS 11, Prisma 6, Screaming Architecture, DTO validation        | [SKILL.md](skills/flag-pilot-api/SKILL.md)       |
 
 ### Generic Skills
 
@@ -37,6 +38,7 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Action                                                                          | Skill                  |
 | ------------------------------------------------------------------------------- | ---------------------- |
 | Editing files in `apps/dashboard/`, creating components, writing Server Actions | `flag-pilot-dashboard` |
+| Editing files in `apps/api/`, creating NestJS modules, writing API tests        | `flag-pilot-api`       |
 | Writing Go tests, using teatest, adding test coverage                           | `go-testing`           |
 | Creating a new skill, adding agent instructions                                 | `skill-creator`        |
 | Creating a pull request                                                         | `branch-pr`            |
