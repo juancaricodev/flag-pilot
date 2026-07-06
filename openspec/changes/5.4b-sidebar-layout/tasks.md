@@ -24,7 +24,7 @@
 
 ## Stage 4: Verification
 
-- [ ] T-014: Confirm proxy.ts already lists `/audit`, `/metrics` in `protectedRoutes` — no proxy changes needed
-- [ ] T-015: Run `pnpm --filter dashboard test` — all existing + 7 new tests pass
-- [ ] T-016: Run `pnpm --filter dashboard typecheck` — no type or import errors
-- [ ] T-017: Manual check — `/flags`, `/audit`, `/metrics` render inside sidebar layout; `/login` has no sidebar
+- [x] T-014: Confirm proxy.ts already lists `/audit`, `/metrics` in `protectedRoutes` — no proxy changes needed
+- [x] T-015: Run `pnpm --filter dashboard test` — all existing + 7 new tests pass
+- [x] T-016: Run `pnpm --filter dashboard typecheck` — no type or import errors
+- [x] T-017: Manual check — `/flags`, `/audit`, `/metrics` render inside sidebar layout; `/login` has no sidebar
