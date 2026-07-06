@@ -126,3 +126,27 @@ Rules:
 - **snake_case** for PostgreSQL tables/columns, **camelCase** for TypeScript
 - **No unit tests for page.tsx** — test data fetchers + components individually
 - **E2E with Playwright** planned post-MVP
+
+---
+
+## SDD Collaboration Protocol
+
+The agent MUST NOT advance to the next SDD phase without human approval:
+
+| #   | Phase       | Action                                             | Human needed?                                      |
+| --- | ----------- | -------------------------------------------------- | -------------------------------------------------- |
+| 1   | **Explore** | Investigate codebase, present findings             | Present findings, WAIT for confirmation            |
+| 2   | **Propose** | Write proposal with intent + scope + approach      | Show proposal, WAIT for approval before next phase |
+| 3   | **Spec**    | Write spec with Given/When/Then scenarios          | Show spec, WAIT for approval before next phase     |
+| 4   | **Design**  | Write technical design with architecture decisions | Show design, WAIT for approval before next phase   |
+| 5   | **Tasks**   | Break down into numbered tasks                     | Show tasks, WAIT for approval before next phase    |
+| 6   | **Apply**   | Write code, tests, verify                          | Only after tasks approved                          |
+| 7   | **Verify**  | Run tests, typecheck, show results                 | Show results, do NOT skip ahead                    |
+| 8   | **Archive** | Move artifacts, sync docs                          | Only with explicit confirmation                    |
+
+**Rule: "Show then wait"** — the agent presents the output of each phase and pauses. Moving to the next phase without human approval is a violation of this protocol.
+
+Exceptions:
+
+- If the user explicitly says "seguí adelante" / "keep going without asking" / "dame todo", the agent MAY proceed without pausing at each step
+- If the user says "hace todo con SDD" or similar, clarify whether they want the full cycle or phase-by-phase approval
