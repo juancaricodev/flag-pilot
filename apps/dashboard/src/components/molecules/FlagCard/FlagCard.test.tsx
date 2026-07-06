@@ -35,7 +35,8 @@ describe('FlagCard', () => {
   });
 
   it('shows "Enabled" badge when flag is enabled', () => {
-    render(<FlagCard flag={baseFlag} />);
+    const flag: Flag = { ...baseFlag, status: 'enabled' };
+    render(<FlagCard flag={flag} />);
 
     expect(screen.getByText('Enabled')).toBeInTheDocument();
   });

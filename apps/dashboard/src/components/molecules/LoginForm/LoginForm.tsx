@@ -3,6 +3,7 @@
 import { useActionState, startTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { login } from '@/actions/auth';
+import { Input, Button } from '@/components/atoms';
 import styles from './LoginForm.module.scss';
 
 const initialState = null as null | { success: false; error: string };
@@ -25,46 +26,36 @@ export function LoginForm() {
         <h1 className={styles.title}>Sign in</h1>
         <p className={styles.subtitle}>Enter your credentials to access the dashboard</p>
 
-        <form action={formAction}>
+        <form action={formAction} className={styles.form}>
           {state && !state.success && (
             <div className={styles.error} role="alert">
               {state.error}
             </div>
           )}
 
-          <div className={styles.field}>
-            <label htmlFor="email" className={styles.label}>
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              placeholder="admin@example.com"
-              className={styles.input}
-            />
-          </div>
+          <Input
+            label="Email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            placeholder="admin@example.com"
+          />
 
-          <div className={styles.field}>
-            <label htmlFor="password" className={styles.label}>
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              placeholder="Enter your password"
-              className={styles.input}
-            />
-          </div>
+          <Input
+            label="Password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            placeholder="Enter your password"
+          />
 
-          <button type="submit" disabled={isPending} className={styles.button}>
-            {isPending ? 'Signing in...' : 'Sign in'}
-          </button>
+          <Button
+            type="submit"
+            disabled={isPending}
+            label={isPending ? 'Signing in...' : 'Sign in'}
+          />
         </form>
       </div>
     </div>

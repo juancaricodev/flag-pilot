@@ -1,6 +1,7 @@
 'use client';
 
 import { formatDate } from '@/utils/formatDate';
+import { Badge } from '@/components/atoms';
 import type { FlagCardProps } from './types';
 import styles from './FlagCard.module.scss';
 
@@ -9,11 +10,7 @@ export function FlagCard({ flag }: FlagCardProps) {
     <article className={styles.card}>
       <div className={styles.header}>
         <h3 className={styles.name}>{flag.name}</h3>
-        <span
-          className={`${styles.badge} ${flag.enabled ? styles.badgeEnabled : styles.badgeDisabled}`}
-        >
-          {flag.enabled ? 'Enabled' : 'Disabled'}
-        </span>
+        <Badge status={flag.status} />
       </div>
 
       <p className={styles.description}>
