@@ -11,10 +11,10 @@
 
 ## Stage 2: Dashboard Layout + Placeholders
 
-- [ ] T-007: Create `(dashboard)/layout.module.scss` — `.layout { display:flex; min-height:100vh }`, `.main { flex:1; padding:var(--space-8); overflow-y:auto }`
-- [ ] T-008: Create `(dashboard)/layout.tsx` — Server Component, import Sidebar, render `<Sidebar />` + `<main>{children}</main>` in flex row
-- [ ] T-009: Create `(dashboard)/audit/page.tsx` — Server Component: "Audit Log" heading + "Coming soon" paragraph
-- [ ] T-010: Create `(dashboard)/metrics/page.tsx` — Server Component: "Metrics" heading + "Coming soon" paragraph
+- [x] T-007: Create `(dashboard)/layout.module.scss` — `.layout { display:flex; min-height:100vh }`, `.main { flex:1; padding:var(--space-8); overflow-y:auto }`
+- [x] T-008: Create `(dashboard)/layout.tsx` — Server Component, import Sidebar, render `<Sidebar />` + `<main>{children}</main>` in flex row
+- [x] T-009: Create `(dashboard)/audit/page.tsx` — Server Component: "Audit Log" heading + "Coming soon" paragraph
+- [x] T-010: Create `(dashboard)/metrics/page.tsx` — Server Component: "Metrics" heading + "Coming soon" paragraph
 
 ## Stage 3: Move Flags Page
 
