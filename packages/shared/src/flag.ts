@@ -1,3 +1,5 @@
+export type FlagStatus = 'disabled' | 'partial' | 'enabled';
+
 export interface Flag {
   id: string;
   name: string;
@@ -5,6 +7,7 @@ export interface Flag {
   enabled: boolean;
   rolloutPct: number;
   whitelist: string[];
+  status: FlagStatus;
   createdAt: string;
   updatedAt: string;
 }

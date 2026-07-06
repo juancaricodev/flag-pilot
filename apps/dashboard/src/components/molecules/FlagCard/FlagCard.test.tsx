@@ -1,12 +1,14 @@
+import type { Flag } from '@fp/shared';
 import { render, screen } from '@testing-library/react';
 import { FlagCard } from './FlagCard';
 
-const baseFlag = {
+const baseFlag: Flag = {
   id: 'flag-1',
   name: 'new-checkout',
   description: 'New checkout flow',
   enabled: true,
   rolloutPct: 50,
+  status: 'partial',
   whitelist: [],
   createdAt: '2026-06-01T00:00:00Z',
   updatedAt: '2026-06-15T12:00:00Z',
@@ -39,7 +41,7 @@ describe('FlagCard', () => {
   });
 
   it('shows "Disabled" badge when flag is disabled', () => {
-    const flag = { ...baseFlag, enabled: false };
+    const flag: Flag = { ...baseFlag, enabled: false, status: 'disabled' };
     render(<FlagCard flag={flag} />);
 
     expect(screen.getByText('Disabled')).toBeInTheDocument();
@@ -52,7 +54,7 @@ describe('FlagCard', () => {
   });
 
   it('renders "0%" when rollout is 0', () => {
-    const flag = { ...baseFlag, rolloutPct: 0 };
+    const flag: Flag = { ...baseFlag, rolloutPct: 0, status: 'enabled' };
     render(<FlagCard flag={flag} />);
 
     expect(screen.getByText('0%')).toBeInTheDocument();
