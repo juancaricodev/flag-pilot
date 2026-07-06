@@ -106,12 +106,12 @@ Browser                  Next.js Server                    API (3000)
 
 **Atomic Design:**
 
-| Level         | Role                                                     |
-| ------------- | -------------------------------------------------------- |
-| **Atoms**     | Base components: Button, Input, Badge, StatusDot, Toggle |
-| **Molecules** | Atom combinations: FlagCard, AuditEntry, LoginForm       |
-| **Organisms** | Complex modules: FlagList, AuditTimeline, MetricsPanel   |
-| **Templates** | The pages themselves (`app/`)                            |
+| Level         | Role                                                   |
+| ------------- | ------------------------------------------------------ |
+| **Atoms**     | Base components: Button, Input, Badge, Toggle          |
+| **Molecules** | Atom combinations: FlagCard, AuditEntry, LoginForm     |
+| **Organisms** | Complex modules: FlagList, AuditTimeline, MetricsPanel |
+| **Templates** | The pages themselves (`app/`)                          |
 
 **Palette — Slate & Sky:**
 
@@ -172,7 +172,21 @@ Browser                  Next.js Server                    API (3000)
 4. Server Action sets httpOnly cookie via `cookies().set('access_token', jwt, { httpOnly: true, secure, sameSite })`
 5. Server Action returns success → component redirects to `/flags`
 
-### 2.10 Database Naming Convention
+### 2.10 Flag Status Computation
+
+The `Flag` type in `packages/shared` includes a computed `status` field (`'disabled' | 'partial' | 'enabled'`) that is NOT stored in the database. It's derived at runtime by the API:
+
+```
+disabled → enabled: false (any rolloutPct)
+partial  → enabled: true AND 0 < rolloutPct < 100
+enabled  → enabled: true AND rolloutPct is 0 or 100
+```
+
+**Rationale**: The status is a derived projection of two existing fields (`enabled` + `rolloutPct`). Storing it would create a synchronization problem (what happens when `rolloutPct` changes but `status` doesn't?). Computing it in `toFlag()` keeps the data model normalized and eliminates sync bugs.
+
+**Location**: `apps/api/src/flags/application/flags.service.ts` — `computeStatus()` method called inside `toFlag()`.
+
+### 2.11 Database Naming Convention
 
 | Convention     | Decision                             |
 | -------------- | ------------------------------------ |
