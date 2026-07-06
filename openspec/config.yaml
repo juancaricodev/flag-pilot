@@ -3,13 +3,14 @@ schema: spec-driven
 
 context: |
   Tech stack: Turborepo + pnpm 10 | NestJS 11 + Prisma 6 + PostgreSQL | Next.js 16 + React 19 + Sass
-  Architecture: Modular monolith (API) + Atomic Design (Dashboard) + Hexagonal-ish (flags module)
+  Architecture: Modular monolith (API) + Screaming Architecture (flags module) + Atomic Design (Dashboard)
   Testing: Jest 30 (both apps) + @testing-library/react (Dashboard) + supertest + testcontainers (API)
-  Style: ESLint + Prettier + TypeScript strict + Husky/lint-staged
+  Style: ESLint + Prettier + TypeScript strict + Husky/lint-staged + Pre-commit hooks
 
 strict_tdd: true
 
 testing:
+  strict_tdd: true
   runner:
     command: 'pnpm test'
     framework: 'Jest 30'
@@ -22,15 +23,24 @@ testing:
       tool: '@testing-library/react (Dashboard) / NestJS Testing (API)'
     e2e:
       available: true
-      tool: 'supertest + testcontainers (API) / Playwright planned post-MVP (Dashboard)'
+      tool: 'supertest + testcontainers (API)'
+      planned: 'Playwright (Dashboard) — post-MVP'
   coverage:
     available: true
     command: 'pnpm --filter api test:cov'
   quality:
-    linter: 'ESLint (both apps)'
-    type_checker: 'TypeScript strict (both apps)'
-    formatter: 'Prettier'
-    hooks: 'Husky + lint-staged'
+    linter:
+      available: true
+      tool: 'ESLint 9 (both apps)'
+    type_checker:
+      available: true
+      tool: 'TypeScript 5.7 strict (both apps)'
+    formatter:
+      available: true
+      tool: 'Prettier 3.5'
+    hooks:
+      available: true
+      tool: 'Husky 9 + lint-staged 17'
 
 rules:
   proposal:
