@@ -99,6 +99,20 @@ describe('getFlags', () => {
     expect(result).toEqual([]);
   });
 
+  it('includes next: { tags: ["flags"] } in the fetch options', async () => {
+    mockCookieGet.mockReturnValue({ value: 'jwt-token-abc' });
+    mockFetchFlags(sampleFlags);
+
+    await getFlags();
+
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/flags'),
+      expect.objectContaining({
+        next: { tags: ['flags'] },
+      }),
+    );
+  });
+
   it('throws when no access_token cookie is present', async () => {
     mockCookieGet.mockReturnValue(undefined);
 

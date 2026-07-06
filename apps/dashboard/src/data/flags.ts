@@ -15,6 +15,7 @@ export async function getFlags(): Promise<Flag[]> {
     headers: {
       Cookie: `access_token=${token}`,
     },
+    next: { tags: ['flags'] },
   });
 
   if (!response.ok) {
