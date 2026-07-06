@@ -18,9 +18,9 @@
 
 ## Stage 3: Move Flags Page
 
-- [ ] T-011: Move `src/app/flags/page.tsx` → `src/app/(dashboard)/flags/page.tsx` (no import changes — uses `@/` absolute paths)
-- [ ] T-012: Move `src/app/flags/page.module.scss` → `src/app/(dashboard)/flags/page.module.scss`; remove `max-width:1200px` + `margin:0 auto` from `.page` (parent flex controls width)
-- [ ] T-013: Delete `src/app/flags/` directory
+- [x] T-011: Move `src/app/flags/page.tsx` → `src/app/(dashboard)/flags/page.tsx` (no import changes — uses `@/` absolute paths)
+- [x] T-012: Move `src/app/flags/page.module.scss` → `src/app/(dashboard)/flags/page.module.scss`; remove `max-width:1200px` + `margin:0 auto` from `.page` (parent flex controls width)
+- [x] T-013: Delete `src/app/flags/` directory
 
 ## Stage 4: Verification
 
