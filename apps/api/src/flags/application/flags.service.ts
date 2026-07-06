@@ -98,6 +98,12 @@ export class FlagsService {
     };
   }
 
+  private computeStatus(enabled: boolean, rolloutPct: number): Flag['status'] {
+    if (!enabled) return 'disabled';
+    if (rolloutPct > 0 && rolloutPct < 100) return 'partial';
+    return 'enabled';
+  }
+
   private toFlag(flag: {
     id: string;
     name: string;
@@ -115,6 +121,7 @@ export class FlagsService {
       enabled: flag.enabled,
       rolloutPct: flag.rolloutPct,
       whitelist: flag.whitelist,
+      status: this.computeStatus(flag.enabled, flag.rolloutPct),
       createdAt: flag.createdAt.toISOString(),
       updatedAt: flag.updatedAt.toISOString(),
     };
