@@ -108,6 +108,10 @@ Follow conventional-commit style: `<type>: <description>`
 Rules:
 
 - Commits must be in English
+- After completing any feature or change, ALWAYS update documentation BEFORE making the final commit:
+  1. `openspec/` — mark tasks as `[x]` in the active change's `tasks.md`
+  2. `docs/` — update relevant files: `tasks.md` (mark items), `design.md` (architecture decisions), `specs.md` (new requirements if applicable)
+- Update `docs/` files directly (they are the portfolio-facing documentation), not through SDD phases
 
 ---
 
