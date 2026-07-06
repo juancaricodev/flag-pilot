@@ -3,7 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../../audit/application/audit.service';
 import { CreateFlagDto } from '../presentation/dtos/create-flag.dto';
 import { UpdateFlagDto } from '../presentation/dtos/update-flag.dto';
-import type { Flag, AuditLogEntry } from '@fp/shared';
+import type { Flag, AuditLogEntry, FlagStatus } from '@fp/shared';
 
 @Injectable()
 export class FlagsService {
@@ -98,7 +98,7 @@ export class FlagsService {
     };
   }
 
-  private computeStatus(enabled: boolean, rolloutPct: number): Flag['status'] {
+  private computeStatus(enabled: boolean, rolloutPct: number): FlagStatus {
     if (!enabled) return 'disabled';
     if (rolloutPct > 0 && rolloutPct < 100) return 'partial';
     return 'enabled';
