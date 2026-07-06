@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { getFlags } from '@/data/flags';
+import { toggleFlag } from '@/actions/flags';
 import { FlagCard } from '@/components/molecules/FlagCard/FlagCard';
 import styles from './page.module.scss';
 
@@ -27,7 +28,7 @@ export default async function FlagsPage() {
       ) : (
         <div className={styles.grid}>
           {flags.map((flag) => (
-            <FlagCard key={flag.id} flag={flag} />
+            <FlagCard key={flag.id} flag={flag} onToggle={toggleFlag} />
           ))}
         </div>
       )}

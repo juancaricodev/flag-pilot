@@ -31,7 +31,7 @@ export async function toggleFlag(
       return { error: body?.message ?? 'Failed to toggle flag' };
     }
 
-    revalidateTag('flags');
+    revalidateTag('flags', 'max');
     return { success: true };
   } catch {
     return { error: 'Failed to toggle flag' };

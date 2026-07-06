@@ -24,16 +24,16 @@ Foundation layer — cache tag + Server Action, no UI changes. All new code is t
 
 UI layer — toggle switch rendering, interaction, and wiring. All FlagCard tests (existing + new) must pass.
 
-- [ ] T-005: **Add `onToggle` to FlagCardProps** — add optional `onToggle?: (flagId: string, enabled: boolean) => Promise<void>` to `FlagCardProps` in `types.ts`. Optional so the card renders without it (skeleton, other contexts).
+- [x] T-005: **Add `onToggle` to FlagCardProps** — add optional `onToggle?: (flagId: string, enabled: boolean) => Promise<void>` to `FlagCardProps` in `types.ts`. Optional so the card renders without it (skeleton, other contexts).
       _File: `apps/dashboard/src/components/molecules/FlagCard/types.ts`_
-- [ ] T-006: **Add toggle switch CSS** — append toggle styles to `FlagCard.module.scss`. CSS-only switch: `<button>` styled as track (36×20px, `border-radius: var(--radius-full)`) with thumb via `::after` pseudo-element (16×16px circle, white). Off state: `background: var(--text-muted)`. On state (`[aria-checked="true"]`): `background: var(--accent)` with `translateX(16px)` on thumb. Disabled state: `opacity: 0.5; cursor: not-allowed`. Include `@include focus-ring` from mixins.
+- [x] T-006: **Add toggle switch CSS** — append toggle styles to `FlagCard.module.scss`. CSS-only switch: `<button>` styled as track (36×20px, `border-radius: var(--radius-full)`) with thumb via `::after` pseudo-element (16×16px circle, white). Off state: `background: var(--text-muted)`. On state (`[aria-checked="true"]`): `background: var(--accent)` with `translateX(16px)` on thumb. Disabled state: `opacity: 0.5; cursor: not-allowed`. Include `@include focus-ring` from mixins.
       _File: `apps/dashboard/src/components/molecules/FlagCard/FlagCard.module.scss`_
-- [ ] T-007: **Add toggle switch to FlagCard** — modify `FlagCard.tsx`: add `useState(false)` for `isPending`, destructure `onToggle` from props. In the `.footer`, right-align a `<button type="button" role="switch" aria-checked={flag.enabled} disabled={isPending}>` that:
+- [x] T-007: **Add toggle switch to FlagCard** — modify `FlagCard.tsx`: add `useState(false)` for `isPending`, destructure `onToggle` from props. In the `.footer`, right-align a `<button type="button" role="switch" aria-checked={flag.enabled} disabled={isPending}>` that:
   1. On click: shows `window.confirm("Are you sure you want to enable/disable \"{flag.name}\"?")`
   2. If cancelled: does nothing
   3. If confirmed: calls `onToggle(flag.id, !flag.enabled)`, manages `isPending` (true while in flight, false on settle), catches errors silently (button re-enables for retry)
      _File: `apps/dashboard/src/components/molecules/FlagCard/FlagCard.tsx`_
-- [ ] T-008: **Add toggle tests to FlagCard.test.tsx** — add test cases:
+- [x] T-008: **Add toggle tests to FlagCard.test.tsx** — add test cases:
   - Renders `<button role="switch">` with `aria-checked="true"` when `onToggle` provided and `flag.enabled` is true
   - Renders `<button role="switch">` with `aria-checked="false"` when `onToggle` provided and `flag.enabled` is false
   - Does NOT render a toggle button when `onToggle` is not provided (existing tests still pass)
@@ -41,7 +41,7 @@ UI layer — toggle switch rendering, interaction, and wiring. All FlagCard test
   - Button has `disabled` attribute while `isPending` is true
   - Button re-enables after `onToggle` settles
     _File: `apps/dashboard/src/components/molecules/FlagCard/FlagCard.test.tsx`_
-- [ ] T-009: **Wire `toggleFlag` in FlagsPage** — modify `src/app/(dashboard)/flags/page.tsx`: import `toggleFlag` from `@/actions/flags`, pass `onToggle={toggleFlag}` to each `<FlagCard>`. The Server Action is passed by reference — Next.js serializes it transparently to a `$action` reference on the client.
+- [x] T-009: **Wire `toggleFlag` in FlagsPage** — modify `src/app/(dashboard)/flags/page.tsx`: import `toggleFlag` from `@/actions/flags`, pass `onToggle={toggleFlag}` to each `<FlagCard>`. The Server Action is passed by reference — Next.js serializes it transparently to a `$action` reference on the client.
       _File: `apps/dashboard/src/app/(dashboard)/flags/page.tsx`_
 
 ## Stage 3: Verification

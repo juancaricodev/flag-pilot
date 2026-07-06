@@ -83,13 +83,13 @@ describe('toggleFlag', () => {
     expect(result).toEqual({ success: true });
   });
 
-  it('calls revalidateTag("flags") on success', async () => {
+  it('calls revalidateTag("flags", "max") on success', async () => {
     mockCookieGet.mockReturnValue({ value: 'jwt-token-abc' });
     mockFetchSuccess();
 
     await toggleFlag('flag-1', true);
 
-    expect(mockRevalidateTag).toHaveBeenCalledWith('flags');
+    expect(mockRevalidateTag).toHaveBeenCalledWith('flags', 'max');
   });
 
   it('returns error message from API on 4xx/5xx', async () => {
