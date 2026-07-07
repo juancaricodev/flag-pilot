@@ -68,10 +68,12 @@
   - Placeholder pages for `/audit` and `/metrics`
   - Flags page moved into route group (URL preserved at `/flags`)
   - Bugfix: LoginForm redirect moved from `startTransition` to `useEffect`
-- [ ] 5.5 **Create / Edit flag form**
-  - Controlled form in `'use client'` component
-  - Server Actions: `POST /api/flags` (create), `PATCH /api/flags/:id` (edit)
-  - Validation: name uniqueness, rollout percentage 0–100, key constraints
+- [x] 5.5 **Create / Edit flag form** (pending bugfix review)
+  - Server Actions: createFlag, updateFlag, deleteFlag, getFlag data fetcher
+  - FlagForm molecule: useActionState, controlled inputs, client validation, rollout sync
+  - Pages: /flags/new (create), /flags/[id]/edit (edit + delete danger zone)
+  - FlagCard: edit link navigation
+  - Bugfix: CreateFlagDto missing rolloutPct → 400 on POST
 - [x] 5.6 **Toggle switch** — inline enable/disable
   - Server Action: `toggleFlag(flagId, enabled)` — reads cookie, `PATCH /api/flags/:id`
   - Cache invalidation via `updateTag('flags')` + `refresh()` (Next.js 16 API)

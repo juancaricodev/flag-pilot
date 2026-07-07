@@ -1,0 +1,13 @@
+@use '@/styles/mixins' as *;
+
+.page {
+  padding: var(--space-8) var(--space-4);
+  max-width: 600px;
+}
+
+.title {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 var(--space-6);
+}
