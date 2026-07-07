@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean, MinLength } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsInt, Min, Max, MinLength } from 'class-validator';
 
 export class CreateFlagDto {
   @IsString()
@@ -12,4 +12,10 @@ export class CreateFlagDto {
   @IsOptional()
   @IsBoolean()
   enabled?: boolean;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  rolloutPct?: number;
 }
