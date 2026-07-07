@@ -1,0 +1,151 @@
+@use '@/styles/mixins' as *;
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text);
+}
+
+.textarea {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  color: var(--text);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  resize: vertical;
+  font-family: inherit;
+  @include transition(border-color, background-color);
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+
+  &:hover {
+    border-color: var(--border-hover);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+}
+
+// ── Toggle switch ───────────────────────────────────────────────────────────
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.toggleLabel {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.toggle {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  background: var(--text-muted);
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  @include transition(background);
+  @include focus-ring;
+
+  &[aria-checked='true'] {
+    background: var(--accent);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: white;
+    @include transition(transform);
+  }
+
+  &[aria-checked='true']::after {
+    transform: translateX(16px);
+  }
+}
+
+.srOnly {
+  @include visually-hidden;
+}
+
+// ── Rollout ─────────────────────────────────────────────────────────────────
+
+.rolloutRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.slider {
+  flex: 1;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.rolloutNumber {
+  width: 80px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  color: var(--text);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  text-align: right;
+  font-family: var(--font-mono);
+  @include transition(border-color);
+
+  &:hover {
+    border-color: var(--border-hover);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+}
+
+.rolloutUnit {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+// ── Server error ────────────────────────────────────────────────────────────
+
+.serverError {
+  background: var(--danger-light);
+  color: var(--danger);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
