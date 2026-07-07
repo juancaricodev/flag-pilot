@@ -2,12 +2,14 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useActionState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createFlag, updateFlag } from '@/actions/flags';
 import { Input, Button } from '@/components/atoms';
 import type { FlagFormProps, FlagFormState } from './types';
 import styles from './FlagForm.module.scss';
 
 export function FlagForm({ mode, flag, onSuccess }: FlagFormProps) {
+  const router = useRouter();
   // ── Controlled inputs ─────────────────────────────────────────────────────
   const [name, setName] = useState(flag?.name ?? '');
   const [description, setDescription] = useState(flag?.description ?? '');
@@ -51,9 +53,10 @@ export function FlagForm({ mode, flag, onSuccess }: FlagFormProps) {
   // ── Side effects on success ───────────────────────────────────────────────
   useEffect(() => {
     if (state?.success) {
+      router.push('/flags');
       onSuccess?.();
     }
-  }, [state, onSuccess]);
+  }, [state, onSuccess, router]);
 
   return (
     <form action={formAction} className={styles.form} noValidate>

@@ -8,10 +8,15 @@ import type { Flag } from '@fp/shared';
 const mockCreateFlag = jest.fn();
 const mockUpdateFlag = jest.fn();
 const mockOnSuccess = jest.fn();
+const mockPush = jest.fn();
 
 jest.mock('@/actions/flags', () => ({
   createFlag: (...args: unknown[]) => mockCreateFlag(...args),
   updateFlag: (...args: unknown[]) => mockUpdateFlag(...args),
+}));
+
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockPush }),
 }));
 
 // ── Fixtures ───────────────────────────────────────────────────────────────
@@ -76,7 +81,7 @@ describe('FlagForm', () => {
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
 
-    it('calls createFlag and triggers onSuccess on successful create', async () => {
+    it('calls createFlag, redirects, and triggers onSuccess on successful create', async () => {
       mockCreateFlag.mockImplementation(() => Promise.resolve({ success: true, flag: mockFlag }));
       const user = userEvent.setup();
 
@@ -90,6 +95,7 @@ describe('FlagForm', () => {
         expect(mockOnSuccess).toHaveBeenCalledTimes(1);
       });
 
+      expect(mockPush).toHaveBeenCalledWith('/flags');
       expect(mockCreateFlag).toHaveBeenCalledTimes(1);
       expect(mockCreateFlag).toHaveBeenCalledWith({
         name: 'New Feature',
@@ -130,7 +136,7 @@ describe('FlagForm', () => {
       expect(screen.getByRole('button', { name: 'Save Changes' })).toBeInTheDocument();
     });
 
-    it('calls updateFlag with flag id and data on successful edit', async () => {
+    it('calls updateFlag, redirects, and triggers onSuccess on successful edit', async () => {
       mockUpdateFlag.mockImplementation(() => Promise.resolve({ success: true, flag: mockFlag }));
       const user = userEvent.setup();
 
@@ -143,6 +149,7 @@ describe('FlagForm', () => {
         expect(screen.getByRole('button', { name: 'Save Changes' })).not.toBeDisabled();
       });
 
+      expect(mockPush).toHaveBeenCalledWith('/flags');
       expect(mockUpdateFlag).toHaveBeenCalledTimes(1);
       expect(mockOnSuccess).toHaveBeenCalledTimes(1);
       expect(mockUpdateFlag).toHaveBeenCalledWith('flag-1', {
