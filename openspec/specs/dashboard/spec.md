@@ -219,6 +219,57 @@ Route groups SHALL NOT alter public URL paths.
 - WHEN the page renders
 - THEN it MUST NOT include the dashboard layout or sidebar
 
+### Requirement: FlagForm Molecule (UC-01, UC-04)
+
+The system MUST provide a `FlagForm` client component that supports creating and editing flags.
+
+| Scenario               | GIVEN                            | WHEN                 | THEN                                                                            |
+| ---------------------- | -------------------------------- | -------------------- | ------------------------------------------------------------------------------- |
+| Create — empty form    | `mode="create"`                  | renders              | All fields empty, button says "Create Flag"                                     |
+| Edit — pre-populated   | `mode="edit"` with a `flag` prop | renders              | Fields show flag values, button says "Save Changes" AND a Delete button appears |
+| Name required          | Form submitted                   | name is empty        | Error "Name is required" shown with `role="alert"`                              |
+| Rollout bounds         | Rollout entered                  | below 0 or above 100 | Inline validation error shown                                                   |
+| Rollout sync           | User drags slider                | —                    | Number input updates to match                                                   |
+| Rollout sync (reverse) | User types in number             | —                    | Slider updates to match                                                         |
+| Server error           | Action returns `{ error }`       | —                    | Error shown inline with `role="alert"`                                          |
+| Success callback       | Action succeeds                  | `onSuccess` provided | `onSuccess()` is called                                                         |
+| Tab order              | User presses Tab                 | —                    | Focus: name → description → enabled → rollout → submit                          |
+
+### Requirement: Flag Server Actions (UC-01, UC-03, UC-04)
+
+The system MUST provide `createFlag`, `updateFlag`, and `deleteFlag` Server Actions that call the API and invalidate cache.
+
+| Scenario      | GIVEN                                  | WHEN          | THEN                                                                                                                           |
+| ------------- | -------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Success       | Auth cookie exists, API returns 200    | Action called | Returns `{ success: true, flag }` (create/update) or `{ success: true }` (delete) AND calls `updateTag('flags')` + `refresh()` |
+| API error     | API returns 4xx/5xx with `{ message }` | Action called | Returns `{ error: message }`                                                                                                   |
+| No auth       | No `access_token` cookie               | Action called | Returns `{ error: 'Not authenticated' }`, fetch NOT called                                                                     |
+| Network error | Fetch throws                           | Action called | Returns fallback error string                                                                                                  |
+
+### Requirement: Create and Edit Flag Pages (UC-01, UC-04)
+
+The system MUST provide `/flags/new` and `/flags/[id]/edit` routes.
+
+| Scenario          | Route              | GIVEN              | WHEN    | THEN                                          |
+| ----------------- | ------------------ | ------------------ | ------- | --------------------------------------------- |
+| Create page       | `/flags/new`       | User navigates     | renders | FlagForm in create mode                       |
+| Edit page         | `/flags/[id]/edit` | Valid flag ID      | renders | FlagForm in edit mode with flag data          |
+| Create → redirect | `/flags/new`       | Form succeeds      | —       | Redirects to `/flags`                         |
+| Edit → redirect   | `/flags/[id]/edit` | Form succeeds      | —       | Redirects to `/flags`                         |
+| Delete confirm    | `/flags/[id]/edit` | User clicks Delete | —       | `window.confirm("Are you sure…?")` shown      |
+| Delete confirmed  | `/flags/[id]/edit` | User confirms      | —       | `deleteFlag(id)` called, redirect to `/flags` |
+| Delete cancelled  | `/flags/[id]/edit` | User cancels       | —       | No action, stays on edit page                 |
+
+### Requirement: Flags Page Navigation (UC-02)
+
+The system MUST provide a "New Flag" button on the flags list and an Edit link on each FlagCard.
+
+| Scenario        | GIVEN                        | WHEN    | THEN                                                       |
+| --------------- | ---------------------------- | ------- | ---------------------------------------------------------- |
+| New Flag button | Flags page renders           | —       | A link to `/flags/new` is in the page header               |
+| Edit link       | FlagCard receives `editHref` | renders | An "Edit" link with that `href` appears in the card footer |
+| No edit link    | FlagCard without `editHref`  | renders | No "Edit" link rendered                                    |
+
 ### Requirement: ToggleFlag Server Action
 
 The system MUST provide a `toggleFlag(flagId, enabled)` Server Action that toggles a flag's enabled state via the API and invalidates the client cache.
@@ -248,9 +299,9 @@ The system MUST provide a `toggleFlag(flagId, enabled)` Server Action that toggl
 - WHEN `toggleFlag` is called
 - THEN it MUST return `{ error: 'Failed to toggle flag' }`
 
-### Requirement: Toggle Switch — Render
+### Requirement: FlagCard — Toggle Switch and Edit Link
 
-The FlagCard MUST render a toggle switch when `onToggle` is provided, and MUST omit it when not.
+The FlagCard MUST render a toggle switch when `onToggle` is provided, and MUST render an Edit link when `editHref` is provided. Each element MUST be omitted when its associated prop is absent.
 
 **Scenario: With onToggle**
 
@@ -263,6 +314,18 @@ The FlagCard MUST render a toggle switch when `onToggle` is provided, and MUST o
 - GIVEN `FlagCard` does not receive `onToggle`
 - WHEN the component renders
 - THEN it MUST NOT render a toggle button
+
+**Scenario: Edit link renders**
+
+- GIVEN `FlagCard` receives an `editHref` prop
+- WHEN the component renders
+- THEN it MUST include an "Edit" link pointing to `editHref`
+
+**Scenario: Without editHref**
+
+- GIVEN `FlagCard` does not receive `editHref`
+- WHEN the component renders
+- THEN it MUST NOT render an Edit link
 
 ### Requirement: Toggle Click — Confirmation
 
@@ -298,7 +361,7 @@ The toggle MUST be disabled while the action is in flight, and MUST re-enable on
 
 ### Requirement: Data Cache Invalidation
 
-The data layer SHALL support tag-based revalidation for the flags list.
+The data layer SHALL support tag-based revalidation for the flags list. All mutation Server Actions (`toggleFlag`, `createFlag`, `updateFlag`, `deleteFlag`) MUST call `updateTag('flags')` and `refresh()` on success.
 
 **Scenario: getFlags uses cache tags**
 
@@ -308,13 +371,23 @@ The data layer SHALL support tag-based revalidation for the flags list.
 
 **Scenario: Server Action revalidates**
 
-- GIVEN `toggleFlag` succeeds
+- GIVEN any mutation action (`toggleFlag`, `createFlag`, `updateFlag`, or `deleteFlag`) succeeds
 - WHEN `updateTag('flags')` and `refresh()` are called
 - THEN subsequent `getFlags()` calls MUST refetch from the API
 
+### Requirement: Flags page passes onToggle
+
+The Flags list page MUST pass `toggleFlag` as the `onToggle` prop to every `FlagCard`.
+
+**Scenario: onToggle wired**
+
+- GIVEN the Flags page renders the flags grid
+- WHEN iterating over flags
+- THEN each `<FlagCard>` MUST receive `onToggle={toggleFlag}`
+
 ### Requirement: Accessible Toggle Pattern
 
-The toggle switch MUST follow the ARIA switch pattern: `<button role="switch" aria-checked={flag.enabled}>`.
+The toggle switch MUST follow the ARIA switch pattern: `<button role="switch" aria-checked={flag.enabled}>`. CSS SHALL style the track and thumb with `translateX` for position changes and smooth transitions. The focus ring SHALL match the existing Button atom pattern.
 
 **Scenario: ARIA attributes**
 
@@ -327,3 +400,7 @@ The toggle switch MUST follow the ARIA switch pattern: `<button role="switch" ar
 - GIVEN the toggle is focused
 - WHEN the user presses Enter or Space
 - THEN the toggle action MUST trigger after confirmation
+
+### Requirement: Custom Modal UX Tracking
+
+Custom confirmation modal replacement is tracked separately as UX enhancement work. This change intentionally uses `window.confirm()` as an MVP choice — the decision to replace it with a custom modal SHALL be revisited in a future UX track, not during this change.

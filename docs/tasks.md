@@ -68,17 +68,19 @@
   - Placeholder pages for `/audit` and `/metrics`
   - Flags page moved into route group (URL preserved at `/flags`)
   - Bugfix: LoginForm redirect moved from `startTransition` to `useEffect`
-- [x] 5.5 **Create / Edit flag form** (pending bugfix review)
+- [x] 5.5 **Create / Edit flag form** ✅
   - Server Actions: createFlag, updateFlag, deleteFlag, getFlag data fetcher
   - FlagForm molecule: useActionState, controlled inputs, client validation, rollout sync
   - Pages: /flags/new (create), /flags/[id]/edit (edit + delete danger zone)
   - FlagCard: edit link navigation
   - Bugfix: CreateFlagDto missing rolloutPct → 400 on POST
-- [x] 5.6 **Toggle switch** — inline enable/disable
+  - ✅ Typecheck, 124 tests, lint — todo verde
+- [x] 5.6 **Toggle switch** — inline enable/disable ✅
   - Server Action: `toggleFlag(flagId, enabled)` — reads cookie, `PATCH /api/flags/:id`
   - Cache invalidation via `updateTag('flags')` + `refresh()` (Next.js 16 API)
   - FlagCard toggle: `<button role="switch" aria-checked>` with `window.confirm()` protection
   - CSS-only toggle (36x20px track + 16px thumb), loading state via `useState`
+  - ✅ Typecheck, tests — todo verde
 - [ ] 5.7 **Audit log timeline**
   - Server Component: fetch `GET /api/flags/:id/audit` with cookie
   - Timeline visual: ordered list of events (created, toggled, updated, deleted)

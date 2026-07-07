@@ -106,12 +106,12 @@ Browser                  Next.js Server                    API (3000)
 
 **Atomic Design:**
 
-| Level         | Role                                                   |
-| ------------- | ------------------------------------------------------ |
-| **Atoms**     | Base components: Button, Input, Badge, Toggle          |
-| **Molecules** | Atom combinations: FlagCard, AuditEntry, LoginForm     |
-| **Organisms** | Complex modules: FlagList, AuditTimeline, MetricsPanel |
-| **Templates** | The pages themselves (`app/`)                          |
+| Level         | Role                                             |
+| ------------- | ------------------------------------------------ |
+| **Atoms**     | Base components: Button, Input, Badge            |
+| **Molecules** | Atom combinations: FlagCard, FlagForm, LoginForm |
+| **Organisms** | Complex modules: Sidebar                         |
+| **Templates** | The pages themselves (`app/`)                    |
 
 **Palette — Slate & Sky:**
 
@@ -231,54 +231,99 @@ enabled  → enabled: true AND rolloutPct is 0 or 100
 ```
 flag-pilot/
 ├── apps/
-│   ├── dashboard/                    # Next.js (Admin UI)
+│   ├── dashboard/                    # Next.js 16 (Admin UI)
 │   │   └── src/
 │   │       ├── app/
-│   │   │   ├── login/            # Login page
-│   │   │   │   └── page.tsx
-│   │   │   ├── flags/            # Protected pages
-│   │       │   │   └── page.tsx
-│   │       │   ├── layout.tsx        # RootLayout
-│   │       │   └── page.tsx          # Home (redirect to /flags)
+│   │       │   ├── layout.tsx              # RootLayout
+│   │       │   ├── page.tsx                # Home (redirects to /flags or /login)
+│   │       │   ├── login/
+│   │       │   │   └── page.tsx            # Login page
+│   │       │   └── (dashboard)/            # Route group (protected)
+│   │       │       ├── layout.tsx          # Sidebar + content flex layout
+│   │       │       ├── flags/page.tsx      # Flags list grid
+│   │       │       ├── flags/new/page.tsx  # Create flag form
+│   │       │       ├── flags/[id]/edit/    # Edit + delete flag
+│   │       │       ├── audit/page.tsx      # Placeholder
+│   │       │       └── metrics/page.tsx    # Placeholder
 │   │       ├── components/
-│   │       │   ├── atoms/            # Base components
+│   │       │   ├── atoms/                  # Base components
 │   │       │   │   ├── Button/
 │   │       │   │   ├── Input/
-│   │       │   │   ├── Badge/
-│   │       │   │   ├── StatusDot/
-│   │       │   │   └── Toggle/
-│   │       │   ├── molecules/        # Atom combinations
-│   │       │   │   ├── FlagCard/
-│   │       │   │   ├── AuditEntry/
+│   │       │   │   └── Badge/
+│   │       │   ├── molecules/              # Atom combinations
+│   │       │   │   ├── FlagCard/           # Flag display + toggle + edit link
+│   │       │   │   ├── FlagForm/           # Create/edit flag form
 │   │       │   │   └── LoginForm/
-│   │       │   └── organisms/        # Complex modules
-│   │       │       ├── FlagList/
-│   │       │       ├── AuditTimeline/
-│   │       │       └── MetricsPanel/
-│   │       ├── actions/              # Server Actions
-│   │       │   ├── auth.ts           # login / logout
-│   │       │   └── flags.ts          # create / toggle / update / delete
+│   │       │   └── organisms/
+│   │       │       └── Sidebar/            # Navigation sidebar
+│   │       ├── actions/                    # Server Actions
+│   │       │   ├── auth.ts                 # login / logout
+│   │       │   └── flags.ts                # create / toggle / update / delete
+│   │       ├── data/
+│   │       │   └── flags.ts                # Data fetchers (getFlags, getFlag)
 │   │       ├── styles/
-│   │       │   ├── _tokens.scss      # CSS Custom Properties
-│   │       │   ├── _mixins.scss      # Reusable mixins
-│   │       │   └── globals.scss      # Reset + base styles
-│   │   ├── lib/                  # Utilities (helpers, fetch wrappers)
-│   │       └── proxy.ts              # Auth proxy (Next.js 16)
-│   └── api/                          # NestJS (REST API)
+│   │       │   ├── _tokens.scss            # CSS Custom Properties
+│   │       │   ├── _mixins.scss            # Reusable mixins
+│   │       │   └── globals.scss            # Reset + base styles
+│   │       ├── utils/
+│   │       │   └── formatDate.ts           # Date formatting
+│   │       └── proxy.ts                    # Auth proxy (Next.js 16)
+│   └── api/                                # NestJS 11 (REST API)
+│       ├── prisma/
+│       │   ├── schema.prisma               # DB models (Admin, Flag, AuditLog, Evaluation)
+│       │   ├── migrations/                 # Prisma migrations
+│       │   └── seed.ts                     # Seed script
+│       ├── test/
+│       │   ├── auth.e2e-spec.ts
+│       │   ├── evaluate.e2e-spec.ts
+│       │   ├── flags.e2e-spec.ts
+│       │   └── helpers/
 │       └── src/
-│           ├── flags/
-│           │   ├── flags.controller.ts
-│           │   ├── flags.service.ts
-│           │   └── flags.module.ts
+│           ├── main.ts
+│           ├── app.module.ts
+│           ├── prisma/                     # PrismaModule + PrismaService
+│           ├── flags/                      # Screaming Architecture module
+│           │   ├── flags.module.ts
+│           │   ├── presentation/
+│           │   │   ├── flags.controller.ts
+│           │   │   └── dtos/
+│           │   └── application/
+│           │       ├── flags.service.ts
+│           │       └── flags.service.spec.ts
 │           ├── audit/
+│           │   ├── audit.module.ts
+│           │   └── application/
 │           ├── auth/
+│           │   ├── auth.module.ts
+│           │   ├── presentation/
+│           │   │   ├── auth.controller.ts
+│           │   │   ├── dtos/
+│           │   │   └── guards/
+│           │   └── application/
 │           └── evaluation/
+│               ├── evaluation.module.ts
+│               ├── presentation/
+│               └── application/
 ├── packages/
-│   └── shared/                       # Shared TypeScript types
+│   └── shared/                             # @fp/shared — shared types
 │       └── src/
-│           ├── flag.ts
-│           ├── user.ts
-│           └── audit.ts
+│           ├── index.ts
+│           ├── api.ts                      # ApiResponse wrappers
+│           ├── audit.ts                    # AuditLogEntry
+│           ├── evaluation.ts               # Evaluation types
+│           └── flag.ts                     # Flag, FlagStatus, CreateFlagInput, UpdateFlagInput
+├── docs/                                   # Portfolio-facing documentation
+│   ├── PRD.md
+│   ├── design.md
+│   ├── specs.md
+│   ├── tasks.md
+│   └── post-mvp.md
+├── openspec/
+│   ├── config.yaml
+│   └── specs/
+│       ├── dashboard/spec.md
+│       ├── api/
+│       └── database/
 ├── turbo.json
 ├── pnpm-workspace.yaml
 └── package.json
@@ -423,7 +468,7 @@ No data migration required (greenfield project). Rollout plan:
 
 - [ ] **Polling vs SSE** — How should the Dashboard reflect changes in real time? Evaluate Server-Sent Events vs simple polling. Post-MVP.
 - [ ] **Deploy target** — AWS (ECS? Lambda? EC2?) — decide when ready to deploy.
-- [x] **Tests from day one** — Resolved: YES. Unit + integration tests for existing code (62 tests). TDD for all new code.
+- [x] **Tests from day one** — Resolved: YES. Unit + integration tests for existing code (~124 dashboard + ~40 API unit + 25 API E2E = ~190 tests). TDD for all new code.
 - [x] **Authentication method** — Resolved: JWT + httpOnly cookie. Login via Server Action in Dashboard.
 - [x] **Cache invalidation** — Resolved: TTL-based (30s cache-aside). Pub/sub evaluated as overkill for v1.
 - [x] **Server Actions vs fetch** — Resolved: Server Actions for all mutations. Server Components for data fetching. No proxy needed.
