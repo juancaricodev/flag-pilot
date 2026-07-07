@@ -107,6 +107,34 @@ describe('FlagsService', () => {
         }),
       );
     });
+
+    it('defaults rolloutPct to 0 when not provided', async () => {
+      mockPrisma.flag.findUnique.mockResolvedValue(null);
+      mockPrisma.flag.create.mockResolvedValue(rawFlag);
+      mockAudit.log.mockResolvedValue({});
+
+      await service.create({ name: 'dark-mode' });
+
+      expect(mockPrisma.flag.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ rolloutPct: 0 }),
+        }),
+      );
+    });
+
+    it('uses provided rolloutPct when given', async () => {
+      mockPrisma.flag.findUnique.mockResolvedValue(null);
+      mockPrisma.flag.create.mockResolvedValue({ ...rawFlag, rolloutPct: 75 });
+      mockAudit.log.mockResolvedValue({});
+
+      await service.create({ name: 'dark-mode', rolloutPct: 75 });
+
+      expect(mockPrisma.flag.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ rolloutPct: 75 }),
+        }),
+      );
+    });
   });
 
   // ---------------------------------------------------------------------------

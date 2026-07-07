@@ -23,6 +23,7 @@ export class FlagsService {
         name: dto.name,
         description: dto.description ?? null,
         enabled: dto.enabled ?? false,
+        rolloutPct: dto.rolloutPct ?? 0,
       },
     });
 
