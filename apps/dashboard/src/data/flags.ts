@@ -24,3 +24,25 @@ export async function getFlags(): Promise<Flag[]> {
 
   return response.json() as Promise<Flag[]>;
 }
+
+export async function getFlag(id: string): Promise<Flag> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('access_token')?.value;
+
+  if (!token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(`${API_URL}/api/flags/${id}`, {
+    headers: {
+      Cookie: `access_token=${token}`,
+    },
+    next: { tags: ['flags'] },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch flag (${response.status})`);
+  }
+
+  return response.json() as Promise<Flag>;
+}
