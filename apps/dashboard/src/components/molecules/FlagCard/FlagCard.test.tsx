@@ -90,6 +90,21 @@ describe('FlagCard', () => {
 
     expect(screen.getByText('KEY')).toBeInTheDocument();
   });
+
+  it('renders edit link when editHref is provided', () => {
+    render(<FlagCard flag={baseFlag} editHref="/flags/flag-1/edit" />);
+
+    expect(screen.getByRole('link', { name: /edit/i })).toHaveAttribute(
+      'href',
+      '/flags/flag-1/edit',
+    );
+  });
+
+  it('does not render edit link when editHref is not provided', () => {
+    render(<FlagCard flag={baseFlag} />);
+
+    expect(screen.queryByRole('link', { name: /edit/i })).not.toBeInTheDocument();
+  });
 });
 
 describe('FlagCard toggle', () => {

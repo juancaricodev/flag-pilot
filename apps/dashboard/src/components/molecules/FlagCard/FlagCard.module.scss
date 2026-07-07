@@ -77,9 +77,28 @@
   border-top: 1px solid var(--border);
 }
 
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
 .updated {
   font-size: var(--text-xs);
   color: var(--text-muted);
+}
+
+.editLink {
+  font-size: var(--text-xs);
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color var(--transition-base);
+
+  &:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+  }
 }
 
 .toggle {

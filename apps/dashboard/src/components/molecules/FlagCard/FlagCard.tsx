@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { formatDate } from '@/utils/formatDate';
 import { Badge } from '@/components/atoms';
 import type { FlagCardProps } from './types';
 import styles from './FlagCard.module.scss';
 
-export function FlagCard({ flag, onToggle }: FlagCardProps) {
+export function FlagCard({ flag, onToggle, editHref }: FlagCardProps) {
   const [isPending, setIsPending] = useState(false);
 
   const handleToggle = async () => {
@@ -55,20 +56,27 @@ export function FlagCard({ flag, onToggle }: FlagCardProps) {
 
       <div className={styles.footer}>
         <span className={styles.updated}>Updated {formatDate(flag.updatedAt)}</span>
-        {onToggle && (
-          <button
-            type="button"
-            role="switch"
-            aria-checked={flag.enabled}
-            disabled={isPending}
-            onClick={handleToggle}
-            className={styles.toggle}
-          >
-            <span className={styles.srOnly}>
-              {flag.enabled ? 'Disable' : 'Enable'} {flag.name}
-            </span>
-          </button>
-        )}
+        <div className={styles.footerActions}>
+          {editHref && (
+            <Link href={editHref} className={styles.editLink}>
+              Edit
+            </Link>
+          )}
+          {onToggle && (
+            <button
+              type="button"
+              role="switch"
+              aria-checked={flag.enabled}
+              disabled={isPending}
+              onClick={handleToggle}
+              className={styles.toggle}
+            >
+              <span className={styles.srOnly}>
+                {flag.enabled ? 'Disable' : 'Enable'} {flag.name}
+              </span>
+            </button>
+          )}
+        </div>
       </div>
     </article>
   );
