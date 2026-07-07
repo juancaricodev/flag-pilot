@@ -67,16 +67,30 @@ The system MUST allow an admin to enable or disable a flag. Changes MUST reflect
 #### Scenario: Happy path — enable a flag
 
 - GIVEN a flag exists with `enabled: false`
-- WHEN the admin toggles it to enabled
+- WHEN the admin clicks the toggle switch and confirms
 - THEN the flag is updated to `enabled: true`
 - AND the change is persisted immediately
+- AND the card reflects the new state instantly
 - AND the audit log records the toggle action
 
 #### Scenario: Happy path — disable a flag
 
 - GIVEN a flag exists with `enabled: true`
-- WHEN the admin toggles it to disabled
+- WHEN the admin clicks the toggle switch and confirms
 - THEN the flag is updated to `enabled: false`
+- AND the card reflects the new state instantly
+
+#### Scenario: Cancelled toggle
+
+- GIVEN a flag exists
+- WHEN the admin clicks the toggle switch but cancels the confirmation dialog
+- THEN the flag state is NOT changed
+
+#### Scenario: Toggle loading state
+
+- GIVEN the admin has confirmed a toggle action
+- WHEN the server is processing the request
+- THEN the toggle switch is disabled to prevent double-clicks
 
 ---
 

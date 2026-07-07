@@ -172,7 +172,36 @@ Browser                  Next.js Server                    API (3000)
 4. Server Action sets httpOnly cookie via `cookies().set('access_token', jwt, { httpOnly: true, secure, sameSite })`
 5. Server Action returns success → component redirects to `/flags`
 
-### 2.10 Flag Status Computation
+### 2.10 Toggle Switch Implementation
+
+The toggle switch is built inline in the FlagCard molecule (not extracted as an Atom) to keep the scope small. It uses:
+
+- **`<button role="switch" aria-checked>`** — ARIA switch pattern, accessible by default with keyboard navigation
+- **`window.confirm()`** — lightweight confirmation dialog for MVP. A custom modal is tracked as a post-MVP UX enhancement
+- **`updateTag('flags')` + `refresh()`** — Next.js 16 cache invalidation. `updateTag` replaces the deprecated `revalidateTag(tag, profile)` pattern which required a cache profile with staleness windows. `refresh()` ensures the client router cache is also invalidated
+
+**Mutation flow:**
+
+```
+Browser                  Next.js Server                    API (3000)
+   │                          │                                │
+   │ Click toggle             │                                │
+   │ window.confirm()         │                                │
+   │ (if cancelled → no-op)   │                                │
+   │                          │                                │
+   │ POST /_next/actions ────►│                                │
+   │ { flagId, enabled }      │   Server Action                │
+   │                          │   - reads cookie from request  │
+   │                          │   - fetch PATCH /api/flags/:id │
+   │                          │   - Cookie: access_token=...   │
+   │                          │──────────────────────────────►│
+   │                          │◄───────── 200 ────────────────│
+   │                          │   - updateTag('flags')         │
+   │                          │   - refresh()                  │
+   │◄── re-render ───────────│                                │
+```
+
+### 2.11 Flag Status Computation
 
 The `Flag` type in `packages/shared` includes a computed `status` field (`'disabled' | 'partial' | 'enabled'`) that is NOT stored in the database. It's derived at runtime by the API:
 

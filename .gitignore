@@ -28,8 +28,8 @@ coverage
 tsconfig.tsbuildinfo
 *.tsbuildinfo
 
-# SDD — past change iterations (persisted in Engram)
-openspec/changes/archive/
+# SDD — change artifacts (persisted in Engram)
+openspec/changes/
 
 # IDE
 .vscode

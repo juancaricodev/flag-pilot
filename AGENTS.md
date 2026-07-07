@@ -110,10 +110,12 @@ Follow conventional-commit style: `<type>: <description>`
 Rules:
 
 - Commits must be in English
-- After completing any feature or change, ALWAYS update documentation BEFORE making the final commit:
-  1. `openspec/` — mark tasks as `[x]` in the active change's `tasks.md`
-  2. `docs/` — update relevant files: `tasks.md` (mark items), `design.md` (architecture decisions), `specs.md` (new requirements if applicable)
-- Update `docs/` files directly (they are the portfolio-facing documentation), not through SDD phases
+- **After completing any feature or change, ALWAYS update `docs/` BEFORE making the final commit:**
+  1. `docs/tasks.md` — mark completed items with `[x]`
+  2. `docs/design.md` — document architecture decisions made
+  3. `docs/specs.md` — add new requirements if applicable
+  - `docs/` is the portfolio-facing documentation — it must reflect the current state of the project
+  - SDD artifacts in `openspec/changes/` are gitignored and live only in Engram, but `docs/` is the permanent human-readable record
 
 ---
 

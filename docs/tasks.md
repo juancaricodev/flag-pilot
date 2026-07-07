@@ -62,16 +62,21 @@
   - `FlagStatus` type (`'disabled' | 'partial' | 'enabled'`) added to `@fp/shared`
   - `status` field computed in API `toFlag()` via `computeStatus()`
   - Barrels export in `src/components/atoms/index.ts`
-- [ ] 5.4b **Navigation sidebar + layout update**
-  - App sidebar: links to `/flags`, `/audit`, `/metrics`, logout button
-  - RootLayout update: add sidebar shell for authenticated routes
+- [x] 5.4b **Navigation sidebar + layout update**
+  - Sidebar organism: brand, nav links (Flags/Audit Log/Metrics), logout via Server Action
+  - `(dashboard)` route group: flex layout (260px sidebar + main content)
+  - Placeholder pages for `/audit` and `/metrics`
+  - Flags page moved into route group (URL preserved at `/flags`)
+  - Bugfix: LoginForm redirect moved from `startTransition` to `useEffect`
 - [ ] 5.5 **Create / Edit flag form**
   - Controlled form in `'use client'` component
   - Server Actions: `POST /api/flags` (create), `PATCH /api/flags/:id` (edit)
   - Validation: name uniqueness, rollout percentage 0–100, key constraints
-- [ ] 5.6 **Toggle switch** — inline enable/disable
-  - Server Action: `PATCH /api/flags/:id { enabled: !flag.enabled }` — passes cookie from `cookies()`
-  - `revalidateTag('flags')` after mutation to refresh server data
+- [x] 5.6 **Toggle switch** — inline enable/disable
+  - Server Action: `toggleFlag(flagId, enabled)` — reads cookie, `PATCH /api/flags/:id`
+  - Cache invalidation via `updateTag('flags')` + `refresh()` (Next.js 16 API)
+  - FlagCard toggle: `<button role="switch" aria-checked>` with `window.confirm()` protection
+  - CSS-only toggle (36x20px track + 16px thumb), loading state via `useState`
 - [ ] 5.7 **Audit log timeline**
   - Server Component: fetch `GET /api/flags/:id/audit` with cookie
   - Timeline visual: ordered list of events (created, toggled, updated, deleted)
