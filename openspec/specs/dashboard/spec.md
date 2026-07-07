@@ -218,3 +218,112 @@ Route groups SHALL NOT alter public URL paths.
 - GIVEN the user visits `/login`
 - WHEN the page renders
 - THEN it MUST NOT include the dashboard layout or sidebar
+
+### Requirement: ToggleFlag Server Action
+
+The system MUST provide a `toggleFlag(flagId, enabled)` Server Action that toggles a flag's enabled state via the API and invalidates the client cache.
+
+**Scenario: Success**
+
+- GIVEN a valid auth cookie exists AND the API returns 200
+- WHEN `toggleFlag` is called with a flag ID and enabled state
+- THEN it MUST return `{ success: true }`
+- AND it MUST call `updateTag('flags')` and `refresh()` to invalidate cache
+
+**Scenario: API error**
+
+- GIVEN the API returns a 4xx/5xx with `{ message }`
+- WHEN `toggleFlag` is called
+- THEN it MUST return `{ error: message }`
+
+**Scenario: Missing auth cookie**
+
+- GIVEN no `access_token` cookie exists
+- WHEN `toggleFlag` is called
+- THEN it MUST return `{ error: 'Not authenticated' }`
+
+**Scenario: Network failure**
+
+- GIVEN the fetch throws a network error
+- WHEN `toggleFlag` is called
+- THEN it MUST return `{ error: 'Failed to toggle flag' }`
+
+### Requirement: Toggle Switch — Render
+
+The FlagCard MUST render a toggle switch when `onToggle` is provided, and MUST omit it when not.
+
+**Scenario: With onToggle**
+
+- GIVEN `FlagCard` receives an `onToggle` callback
+- WHEN the component renders
+- THEN it MUST include a `<button role="switch">` whose `aria-checked` equals `flag.enabled`
+
+**Scenario: Without onToggle**
+
+- GIVEN `FlagCard` does not receive `onToggle`
+- WHEN the component renders
+- THEN it MUST NOT render a toggle button
+
+### Requirement: Toggle Click — Confirmation
+
+The system SHALL use `window.confirm()` before executing the toggle, and SHALL NOT call the action if the user cancels.
+
+**Scenario: Confirmed**
+
+- GIVEN the toggle switch is clicked
+- WHEN the user confirms in `window.confirm()`
+- THEN `onToggle(flag.id, !flag.enabled)` MUST be called
+
+**Scenario: Cancelled**
+
+- GIVEN the toggle switch is clicked
+- WHEN the user cancels `window.confirm()`
+- THEN `onToggle` MUST NOT be called
+
+### Requirement: Toggle Loading State
+
+The toggle MUST be disabled while the action is in flight, and MUST re-enable on error.
+
+**Scenario: Disabled during action**
+
+- GIVEN `toggleFlag` is executing
+- WHEN the component is in a pending state
+- THEN the toggle button MUST have `disabled` attribute AND display reduced opacity
+
+**Scenario: Re-enabled on error**
+
+- GIVEN `toggleFlag` returns an error
+- WHEN `onToggle` settles
+- THEN the toggle button MUST be enabled for retry
+
+### Requirement: Data Cache Invalidation
+
+The data layer SHALL support tag-based revalidation for the flags list.
+
+**Scenario: getFlags uses cache tags**
+
+- GIVEN `getFlags()` fetches from the API
+- WHEN the fetch is made
+- THEN the request MUST include `next: { tags: ['flags'] }` to enable cache revalidation
+
+**Scenario: Server Action revalidates**
+
+- GIVEN `toggleFlag` succeeds
+- WHEN `updateTag('flags')` and `refresh()` are called
+- THEN subsequent `getFlags()` calls MUST refetch from the API
+
+### Requirement: Accessible Toggle Pattern
+
+The toggle switch MUST follow the ARIA switch pattern: `<button role="switch" aria-checked={flag.enabled}>`.
+
+**Scenario: ARIA attributes**
+
+- GIVEN the toggle is rendered
+- WHEN the component mounts
+- THEN it MUST have `role="switch"` and `aria-checked` matching the flag's enabled state
+
+**Scenario: Keyboard interaction**
+
+- GIVEN the toggle is focused
+- WHEN the user presses Enter or Space
+- THEN the toggle action MUST trigger after confirmation
