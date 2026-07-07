@@ -16,6 +16,7 @@ export interface CreateFlagInput {
   name: string;
   description?: string;
   enabled?: boolean;
+  rolloutPct?: number;
 }
 
 export interface UpdateFlagInput {
