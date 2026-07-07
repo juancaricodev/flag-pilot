@@ -62,8 +62,10 @@ describe('FlagForm', () => {
       expect(screen.getByLabelText('Name')).toHaveValue('');
       expect(screen.getByLabelText('Description')).toHaveValue('');
       expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'false');
-      expect(screen.getByRole('slider', { name: 'Rollout slider' })).toHaveValue('50');
-      expect(screen.getByRole('spinbutton', { name: 'Rollout percentage' })).toHaveValue(50);
+      expect(screen.getByRole('slider', { name: 'Rollout slider' })).toHaveValue('0');
+      expect(screen.getByRole('spinbutton', { name: 'Rollout percentage' })).toHaveValue(0);
+      expect(screen.getByRole('slider', { name: 'Rollout slider' })).toBeDisabled();
+      expect(screen.getByRole('spinbutton', { name: 'Rollout percentage' })).toBeDisabled();
     });
 
     it('shows validation error when name is empty on submit', async () => {
@@ -101,7 +103,7 @@ describe('FlagForm', () => {
         name: 'New Feature',
         description: undefined,
         enabled: false,
-        rolloutPct: 50,
+        rolloutPct: 0,
       });
     });
 
@@ -166,6 +168,9 @@ describe('FlagForm', () => {
       const user = userEvent.setup();
       render(<FlagForm mode="create" />);
 
+      // Enable the flag first so rollout inputs are not disabled
+      await user.click(screen.getByRole('switch'));
+
       const slider = screen.getByRole('slider', { name: 'Rollout slider' });
       const numberInput = screen.getByRole('spinbutton', { name: 'Rollout percentage' });
 
@@ -175,8 +180,12 @@ describe('FlagForm', () => {
       expect(slider).toHaveValue('75');
     });
 
-    it('syncs slider to number input when dragging', () => {
+    it('syncs slider to number input when dragging', async () => {
+      const user = userEvent.setup();
       render(<FlagForm mode="create" />);
+
+      // Enable the flag first so rollout inputs are not disabled
+      await user.click(screen.getByRole('switch'));
 
       const slider = screen.getByRole('slider', { name: 'Rollout slider' });
       const numberInput = screen.getByRole('spinbutton', { name: 'Rollout percentage' });

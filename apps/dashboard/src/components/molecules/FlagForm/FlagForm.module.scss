@@ -108,6 +108,12 @@
   flex: 1;
   accent-color: var(--accent);
   cursor: pointer;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    accent-color: var(--text-muted);
+  }
 }
 
 .rolloutNumber {
@@ -131,6 +137,13 @@
     outline: none;
     border-color: var(--accent);
     box-shadow: 0 0 0 1px var(--accent);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--bg-muted);
+    border-color: var(--border);
   }
 }
 

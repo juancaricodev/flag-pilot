@@ -14,7 +14,7 @@ export function FlagForm({ mode, flag, onSuccess }: FlagFormProps) {
   const [name, setName] = useState(flag?.name ?? '');
   const [description, setDescription] = useState(flag?.description ?? '');
   const [enabled, setEnabled] = useState(flag?.enabled ?? false);
-  const [rolloutPct, setRolloutPct] = useState(flag?.rolloutPct ?? 50);
+  const [rolloutPct, setRolloutPct] = useState(flag?.rolloutPct ?? 0);
 
   // ── Wrapping action: validates before calling the Server Action ───────────
   // All field values are read from FormData (controlled inputs keep DOM in sync)
@@ -118,6 +118,7 @@ export function FlagForm({ mode, flag, onSuccess }: FlagFormProps) {
             max="100"
             value={rolloutPct}
             onChange={(e) => setRolloutPct(Number(e.target.value))}
+            disabled={!enabled}
             className={styles.slider}
             aria-label="Rollout slider"
           />
@@ -128,6 +129,7 @@ export function FlagForm({ mode, flag, onSuccess }: FlagFormProps) {
             max="100"
             value={rolloutPct}
             onChange={(e) => setRolloutPct(Number(e.target.value))}
+            disabled={!enabled}
             className={styles.rolloutNumber}
             aria-label="Rollout percentage"
           />
