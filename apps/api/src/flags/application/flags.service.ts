@@ -61,7 +61,8 @@ export class FlagsService {
 
     const result = this.toFlag(flag);
 
-    const action = dto.enabled !== undefined ? 'TOGGLE' : 'UPDATE';
+    const enabledChanged = dto.enabled !== undefined && dto.enabled !== before.enabled;
+    const action = enabledChanged ? 'TOGGLE' : 'UPDATE';
 
     await this.audit.log({
       flagId: id,

@@ -230,6 +230,27 @@ describe('FlagsService', () => {
       expect(mockAudit.log).toHaveBeenCalledWith(expect.objectContaining({ action: 'UPDATE' }));
     });
 
+    it('logs UPDATE when enabled is provided but unchanged (regression: unchanged-enabled edge case)', async () => {
+      mockPrisma.flag.findUnique.mockResolvedValue(rawFlag); // enabled: false
+      mockPrisma.flag.update.mockResolvedValue({ ...rawFlag, description: 'new desc' });
+      mockAudit.log.mockResolvedValue({});
+
+      await service.update('flag-1', { description: 'new desc', enabled: false });
+
+      expect(mockAudit.log).toHaveBeenCalledWith(expect.objectContaining({ action: 'UPDATE' }));
+    });
+
+    it('logs UPDATE when enabled true stays true alongside other changes (triangulation)', async () => {
+      const enabledFlag = { ...rawFlag, enabled: true };
+      mockPrisma.flag.findUnique.mockResolvedValue(enabledFlag);
+      mockPrisma.flag.update.mockResolvedValue({ ...enabledFlag, rolloutPct: 50 });
+      mockAudit.log.mockResolvedValue({});
+
+      await service.update('flag-1', { rolloutPct: 50, enabled: true });
+
+      expect(mockAudit.log).toHaveBeenCalledWith(expect.objectContaining({ action: 'UPDATE' }));
+    });
+
     it('throws NotFoundException when flag does not exist', async () => {
       mockPrisma.flag.findUnique.mockResolvedValue(null);
 
