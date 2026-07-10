@@ -81,9 +81,11 @@
   - FlagCard toggle: `<button role="switch" aria-checked>` with `window.confirm()` protection
   - CSS-only toggle (36x20px track + 16px thumb), loading state via `useState`
   - ✅ Typecheck, tests — todo verde
-- [ ] 5.7 **Audit log timeline**
-  - Server Component: fetch `GET /api/flags/:id/audit` with cookie
-  - Timeline visual: ordered list of events (created, toggled, updated, deleted)
+- [x] 5.7 **Audit log timeline** ✅
+  - New `GET /api/audit` endpoint + `AuditService.findAll()`
+  - `AuditEntry` molecule: colored timeline with action badge, description, timestamp
+  - Server Component page at `/audit` with header, subtitle, timeline, empty state
+  - ✅ Typecheck, 141 tests, lint — todo verde
 - [ ] 5.8 **Metrics display**
   - Server Component: fetch evaluation count from API
   - Display per-flag evaluation metrics and global summary
