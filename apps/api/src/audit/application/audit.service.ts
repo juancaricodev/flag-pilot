@@ -21,31 +21,45 @@ export class AuditService {
         toState: params.toState ? JSON.stringify(params.toState) : null,
         reason: params.reason ?? null,
       },
+      include: { flag: { select: { name: true } } },
     });
 
-    return this.toEntry(audit);
+    return this.toEntry(audit, audit.flag);
+  }
+
+  async findAll(): Promise<AuditLogEntry[]> {
+    const logs = await this.prisma.auditLog.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: { flag: { select: { name: true } } },
+    });
+    return logs.map((e) => this.toEntry(e, e.flag));
   }
 
   async findByFlagId(flagId: string): Promise<AuditLogEntry[]> {
     const logs = await this.prisma.auditLog.findMany({
       where: { flagId },
       orderBy: { createdAt: 'desc' },
+      include: { flag: { select: { name: true } } },
     });
-    return logs.map((e) => this.toEntry(e));
+    return logs.map((e) => this.toEntry(e, e.flag));
   }
 
-  private toEntry(audit: {
-    id: string;
-    flagId: string;
-    action: string;
-    fromState: string | null;
-    toState: string | null;
-    reason: string | null;
-    createdAt: Date;
-  }): AuditLogEntry {
+  private toEntry(
+    audit: {
+      id: string;
+      flagId: string;
+      action: string;
+      fromState: string | null;
+      toState: string | null;
+      reason: string | null;
+      createdAt: Date;
+    },
+    flag?: { name: string },
+  ): AuditLogEntry {
     return {
       id: audit.id,
       flagId: audit.flagId,
+      flagName: flag?.name,
       action: String(audit.action) as AuditAction,
       fromState: audit.fromState,
       toState: audit.toState,

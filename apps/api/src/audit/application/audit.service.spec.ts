@@ -20,6 +20,7 @@ describe('AuditService', () => {
     toState: JSON.stringify({ name: 'dark-mode', enabled: false }),
     reason: null,
     createdAt: new Date('2026-06-25T10:00:00Z'),
+    flag: { name: 'dark-mode' },
   };
 
   const rawEntryWithState = {
@@ -27,6 +28,7 @@ describe('AuditService', () => {
     fromState: JSON.stringify({ name: 'dark-mode', enabled: false }),
     toState: JSON.stringify({ name: 'dark-mode', enabled: true }),
     reason: 'Initial creation',
+    flag: { name: 'dark-mode' },
   };
 
   beforeEach(async () => {
@@ -55,6 +57,7 @@ describe('AuditService', () => {
       expect(result).toEqual({
         id: 'audit-1',
         flagId: 'flag-1',
+        flagName: 'dark-mode',
         action: 'CREATE',
         fromState: null,
         toState: JSON.stringify({ name: 'dark-mode', enabled: false }),
@@ -73,15 +76,17 @@ describe('AuditService', () => {
         toState: { name: 'dark-mode', enabled: true },
       });
 
-      expect(mockPrisma.auditLog.create).toHaveBeenCalledWith({
-        data: {
-          flagId: 'flag-1',
-          action: 'UPDATE',
-          fromState: JSON.stringify({ name: 'dark-mode', enabled: false }),
-          toState: JSON.stringify({ name: 'dark-mode', enabled: true }),
-          reason: null,
-        },
-      });
+      expect(mockPrisma.auditLog.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            flagId: 'flag-1',
+            action: 'UPDATE',
+            fromState: JSON.stringify({ name: 'dark-mode', enabled: false }),
+            toState: JSON.stringify({ name: 'dark-mode', enabled: true }),
+            reason: null,
+          },
+        }),
+      );
     });
 
     it('sets fromState to null when not provided', async () => {
@@ -93,15 +98,17 @@ describe('AuditService', () => {
         toState: { name: 'dark-mode', enabled: false },
       });
 
-      expect(mockPrisma.auditLog.create).toHaveBeenCalledWith({
-        data: {
-          flagId: 'flag-1',
-          action: 'CREATE',
-          fromState: null,
-          toState: JSON.stringify({ name: 'dark-mode', enabled: false }),
-          reason: null,
-        },
-      });
+      expect(mockPrisma.auditLog.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            flagId: 'flag-1',
+            action: 'CREATE',
+            fromState: null,
+            toState: JSON.stringify({ name: 'dark-mode', enabled: false }),
+            reason: null,
+          },
+        }),
+      );
     });
 
     it('sets toState to null when not provided', async () => {
@@ -113,15 +120,17 @@ describe('AuditService', () => {
         fromState: { name: 'dark-mode', enabled: true },
       });
 
-      expect(mockPrisma.auditLog.create).toHaveBeenCalledWith({
-        data: {
-          flagId: 'flag-1',
-          action: 'DELETE',
-          fromState: JSON.stringify({ name: 'dark-mode', enabled: true }),
-          toState: null,
-          reason: null,
-        },
-      });
+      expect(mockPrisma.auditLog.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            flagId: 'flag-1',
+            action: 'DELETE',
+            fromState: JSON.stringify({ name: 'dark-mode', enabled: true }),
+            toState: null,
+            reason: null,
+          },
+        }),
+      );
     });
 
     it('defaults reason to null when not provided', async () => {
@@ -199,6 +208,7 @@ describe('AuditService', () => {
       expect(mockPrisma.auditLog.findMany).toHaveBeenCalledWith({
         where: { flagId: 'flag-1' },
         orderBy: { createdAt: 'desc' },
+        include: { flag: { select: { name: true } } },
       });
     });
 
@@ -218,6 +228,39 @@ describe('AuditService', () => {
 
       // Action should be one of the allowed AuditAction values
       expect(['CREATE', 'TOGGLE', 'UPDATE', 'DELETE']).toContain(result[0].action);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // findAll()
+  // ---------------------------------------------------------------------------
+  describe('findAll', () => {
+    it('returns all audit logs ordered by createdAt desc', async () => {
+      const newerEntry = {
+        ...rawEntry,
+        id: 'audit-2',
+        createdAt: new Date('2026-06-25T11:00:00Z'),
+      };
+      mockPrisma.auditLog.findMany.mockResolvedValue([newerEntry, rawEntry]);
+
+      const result = await service.findAll();
+
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe('audit-2');
+      expect(result[1].id).toBe('audit-1');
+      expect(result[0].flagName).toBe('dark-mode');
+      expect(mockPrisma.auditLog.findMany).toHaveBeenCalledWith({
+        orderBy: { createdAt: 'desc' },
+        include: { flag: { select: { name: true } } },
+      });
+    });
+
+    it('returns an empty array when no audit logs exist', async () => {
+      mockPrisma.auditLog.findMany.mockResolvedValue([]);
+
+      const result = await service.findAll();
+
+      expect(result).toEqual([]);
     });
   });
 });
