@@ -86,7 +86,7 @@
   - `AuditEntry` molecule: colored timeline with action badge, description, timestamp
   - Server Component page at `/audit` with header, subtitle, timeline, empty state
   - ✅ Typecheck, 141 tests, lint — todo verde
-- [ ] 5.8 **Metrics display**
+- [x] 5.8 **Metrics display**
   - Server Component: fetch evaluation count from API
   - Display per-flag evaluation metrics and global summary
 

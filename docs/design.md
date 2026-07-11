@@ -243,8 +243,8 @@ flag-pilot/
 │   │       │       ├── flags/page.tsx      # Flags list grid
 │   │       │       ├── flags/new/page.tsx  # Create flag form
 │   │       │       ├── flags/[id]/edit/    # Edit + delete flag
-│   │       │       ├── audit/page.tsx      # Placeholder
-│   │       │       └── metrics/page.tsx    # Placeholder
+│   │       │       ├── audit/page.tsx      # Audit log timeline
+│   │       │       └── metrics/page.tsx    # Metrics display page
 │   │       ├── components/
 │   │       │   ├── atoms/                  # Base components
 │   │       │   │   ├── Button/
@@ -253,14 +253,18 @@ flag-pilot/
 │   │       │   ├── molecules/              # Atom combinations
 │   │       │   │   ├── FlagCard/           # Flag display + toggle + edit link
 │   │       │   │   ├── FlagForm/           # Create/edit flag form
-│   │       │   │   └── LoginForm/
+│   │       │   │   ├── LoginForm/
+│   │       │   │   ├── AuditEntry/         # Audit log timeline row
+│   │       │   │   └── MetricsSummary/     # Metrics total count display
 │   │       │   └── organisms/
-│   │       │       └── Sidebar/            # Navigation sidebar
+│   │       │       ├── Sidebar/            # Navigation sidebar
+│   │       │       └── MetricsTable/       # Per-flag metrics table
 │   │       ├── actions/                    # Server Actions
 │   │       │   ├── auth.ts                 # login / logout
 │   │       │   └── flags.ts                # create / toggle / update / delete
 │   │       ├── data/
-│   │       │   └── flags.ts                # Data fetchers (getFlags, getFlag)
+│   │       │   ├── flags.ts                # Data fetchers (getFlags, getFlag)
+│   │       │   └── metrics.ts              # getMetrics() data fetcher
 │   │       ├── styles/
 │   │       │   ├── _tokens.scss            # CSS Custom Properties
 │   │       │   ├── _mixins.scss            # Reusable mixins
@@ -300,6 +304,13 @@ flag-pilot/
 │           │   │   ├── dtos/
 │           │   │   └── guards/
 │           │   └── application/
+│           ├── metrics/                         # Metrics module (read-only, Dashboard-facing)
+│           │   ├── metrics.module.ts
+│           │   ├── presentation/
+│           │   │   └── metrics.controller.ts
+│           │   └── application/
+│           │       ├── metrics.service.ts
+│           │       └── metrics.service.spec.ts
 │           └── evaluation/
 │               ├── evaluation.module.ts
 │               ├── presentation/
@@ -311,7 +322,8 @@ flag-pilot/
 │           ├── api.ts                      # ApiResponse wrappers
 │           ├── audit.ts                    # AuditLogEntry
 │           ├── evaluation.ts               # Evaluation types
-│           └── flag.ts                     # Flag, FlagStatus, CreateFlagInput, UpdateFlagInput
+│           ├── flag.ts                     # Flag, FlagStatus, CreateFlagInput, UpdateFlagInput
+│           └── metrics.ts                  # MetricsSummary, FlagMetrics
 ├── docs/                                   # Portfolio-facing documentation
 │   ├── PRD.md
 │   ├── design.md
@@ -399,6 +411,8 @@ model Evaluation {
 | `PATCH`  | `/api/flags/:id`       | Update flag (toggle, %, whitelist) |
 | `DELETE` | `/api/flags/:id`       | Delete flag                        |
 | `GET`    | `/api/flags/:id/audit` | Change history                     |
+| `GET`    | `/api/audit`           | Audit log timeline                 |
+| `GET`    | `/api/metrics`         | Evaluation metrics summary         |
 
 ### Evaluation (SDK)
 

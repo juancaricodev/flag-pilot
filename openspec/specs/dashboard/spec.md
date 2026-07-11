@@ -186,15 +186,14 @@ The (dashboard) route group layout MUST wrap authenticated pages in a sidebar + 
 
 ### Requirement: Placeholder Pages
 
-The system MUST render a placeholder page for `/metrics` ONLY, acknowledging the feature is not yet implemented.
-(Previously: Both `/audit` and `/metrics` showed "Coming soon" placeholders. The audit page now has a real timeline.)
+The system SHALL NOT render any placeholder pages. All routes MUST have real implementations.
+(Previously: `/metrics` showed a "Coming soon" placeholder. Now replaced with real metrics page.)
 
-**Scenario: Metrics placeholder**
+**Scenario: No placeholder pages exist**
 
-- GIVEN the user navigates to `/metrics`
+- GIVEN the user navigates to any dashboard route
 - WHEN the page renders
-- THEN it MUST display the heading "Metrics"
-- AND a "Coming soon" message
+- THEN it MUST show real content (no "Coming soon" messages)
 
 ### Requirement: Route Group Integrity
 
@@ -470,3 +469,44 @@ The `/audit` page MUST be a Server Component that calls `getAuditLogs()` and ren
 | Logs exist | `getAuditLogs()` returns entries | Page renders      | Shows "Audit Log" heading AND timeline of `AuditEntry` components |
 | No logs    | `getAuditLogs()` returns `[]`    | Page renders      | Shows "Audit Log" heading AND "No audit logs yet" empty state     |
 | API error  | `getAuditLogs()` throws          | Page renders      | Shows error state explaining logs could not be loaded             |
+
+### Requirement: Metrics Page (Dashboard)
+
+The `/metrics` page MUST be a Server Component that displays evaluation metrics for all flags.
+
+| Scenario        | GIVEN                                        | WHEN page renders | THEN                                                                       |
+| --------------- | -------------------------------------------- | ----------------- | -------------------------------------------------------------------------- |
+| Has evaluations | `getMetrics()` returns data with flags       | Page renders      | Shows "Metrics" heading AND total evaluation count AND per-flag stats list |
+| No evaluations  | `getMetrics()` returns `totalEvaluations: 0` | Page renders      | Shows "Metrics" heading AND empty state: "No evaluation data yet"          |
+| API error       | `getMetrics()` throws                        | Page renders      | Shows error state explaining metrics could not be loaded                   |
+
+### Requirement: Metrics Summary Display (Dashboard)
+
+The metrics page MUST display a global summary showing total evaluations across all flags.
+
+| Scenario            | GIVEN                    | WHEN page renders | THEN                                                            |
+| ------------------- | ------------------------ | ----------------- | --------------------------------------------------------------- |
+| Summary shows total | 1500 total evaluations   | Page renders      | Displays "1,500 total evaluations" (or similar formatted count) |
+| Summary with flags  | 3 flags with evaluations | Page renders      | Shows total count prominently at top                            |
+
+### Requirement: Per-Flag Metrics Display (Dashboard)
+
+The metrics page MUST display per-flag evaluation statistics in a table format. The table MUST show: flag name, total evaluations, enabled count, and disabled count. Flags MUST be ordered by total evaluations descending.
+
+| Scenario              | GIVEN                                                         | WHEN page renders | THEN                                                         |
+| --------------------- | ------------------------------------------------------------- | ----------------- | ------------------------------------------------------------ |
+| Flag with evaluations | Flag "new-checkout" has 500 evals (300 enabled, 200 disabled) | Table row renders | Shows: "new-checkout" \| 500 \| 300 \| 200                   |
+| Multiple flags        | 3 flags with different counts                                 | Table renders     | All 3 flags as rows, ordered by total descending             |
+| Flag with zero evals  | Flag exists but has 0 evaluations                             | Table row renders | Shows: flag name \| 0 \| 0 \| 0                              |
+| Table headers         | Page renders                                                  | Table visible     | Shows column headers: "Flag", "Total", "Enabled", "Disabled" |
+
+### Requirement: getMetrics() Data Fetcher (Dashboard)
+
+Dashboard MUST provide `getMetrics()` in `src/data/metrics.ts` following the same pattern as `getAuditLogs()`: read `access_token` cookie, fetch with `cache: 'no-store'`, throw on errors.
+
+| Scenario      | GIVEN                    | WHEN           | THEN                                                  |
+| ------------- | ------------------------ | -------------- | ----------------------------------------------------- |
+| Success       | Valid cookie, API 200    | `getMetrics()` | Returns typed `MetricsSummary`                        |
+| No auth       | No `access_token` cookie | `getMetrics()` | Throws `Error('Not authenticated')`, fetch NOT called |
+| API error     | API returns 4xx/5xx      | `getMetrics()` | Throws `Error` with status context                    |
+| Network error | Fetch throws             | `getMetrics()` | Throws `Error`                                        |
