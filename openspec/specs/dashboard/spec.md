@@ -186,14 +186,8 @@ The (dashboard) route group layout MUST wrap authenticated pages in a sidebar + 
 
 ### Requirement: Placeholder Pages
 
-The system MUST render placeholder pages for `/audit` and `/metrics` acknowledging the feature is not yet implemented.
-
-**Scenario: Audit placeholder**
-
-- GIVEN the user navigates to `/audit`
-- WHEN the page renders
-- THEN it MUST display the heading "Audit Log"
-- AND a "Coming soon" message
+The system MUST render a placeholder page for `/metrics` ONLY, acknowledging the feature is not yet implemented.
+(Previously: Both `/audit` and `/metrics` showed "Coming soon" placeholders. The audit page now has a real timeline.)
 
 **Scenario: Metrics placeholder**
 
@@ -404,3 +398,75 @@ The toggle switch MUST follow the ARIA switch pattern: `<button role="switch" ar
 ### Requirement: Custom Modal UX Tracking
 
 Custom confirmation modal replacement is tracked separately as UX enhancement work. This change intentionally uses `window.confirm()` as an MVP choice — the decision to replace it with a custom modal SHALL be revisited in a future UX track, not during this change.
+
+### Requirement: GET /api/audit endpoint (API)
+
+The API MUST expose a `GET /api/audit` endpoint, protected by AuthGuard, returning all audit logs with `flagName`, ordered by `createdAt` desc.
+
+| Scenario                 | GIVEN                           | WHEN             | THEN                                                                    |
+| ------------------------ | ------------------------------- | ---------------- | ----------------------------------------------------------------------- |
+| Authenticated — has data | Valid JWT cookie AND logs exist | `GET /api/audit` | Status 200, array of `AuditLogEntry` each with `flagName`, newest first |
+| Authenticated — empty    | Valid JWT cookie AND no logs    | `GET /api/audit` | Status 200, empty array `[]`                                            |
+| Unauthenticated          | No valid JWT cookie             | `GET /api/audit` | Status 401                                                              |
+
+### Requirement: AuditService.findAll() (API)
+
+`AuditService` MUST provide `findAll()` that fetches all audit logs via Prisma with `flag` relation (`select: { name: true }`), ordered by `createdAt: 'desc'`, and maps results through `toEntry()` including `flagName`.
+
+| Scenario                    | GIVEN                            | WHEN        | THEN                                                       |
+| --------------------------- | -------------------------------- | ----------- | ---------------------------------------------------------- |
+| Returns logs with flag name | Multiple logs on different flags | `findAll()` | Returns entries ordered newest-first, each with `flagName` |
+| Empty DB                    | No audit logs exist              | `findAll()` | Returns `[]`                                               |
+
+### Requirement: AuditLogEntry.flagName (Shared)
+
+`AuditLogEntry` interface MUST add an optional `flagName?: string` field.
+
+| Scenario            | GIVEN                                 | WHEN                | THEN                                          |
+| ------------------- | ------------------------------------- | ------------------- | --------------------------------------------- |
+| Backward compatible | Existing code imports `AuditLogEntry` | Compiles            | TypeScript MUST NOT error — field is optional |
+| Populated via API   | `GET /api/audit` returns entry        | Inspecting response | `flagName` equals `flag.name` from DB         |
+
+### Requirement: getAuditLogs() data fetcher (Dashboard)
+
+Dashboard MUST provide `getAuditLogs()` in `src/data/audit.ts` following the same pattern as `getFlags()`: read `access_token` cookie, fetch with `next: { tags: ['audit'] }`, throw on errors.
+
+| Scenario      | GIVEN                            | WHEN             | THEN                                                  |
+| ------------- | -------------------------------- | ---------------- | ----------------------------------------------------- |
+| Success       | Valid cookie, API 200 with array | `getAuditLogs()` | Returns typed `AuditLogEntry[]`                       |
+| No auth       | No `access_token` cookie         | `getAuditLogs()` | Throws `Error('Not authenticated')`, fetch NOT called |
+| API error     | API returns 4xx/5xx              | `getAuditLogs()` | Throws `Error` with status context                    |
+| Network error | Fetch throws                     | `getAuditLogs()` | Throws `Error`                                        |
+
+### Requirement: formatDateTime utility (Dashboard)
+
+Dashboard MUST provide `formatDateTime(iso: string): string` in `src/utils/formatDateTime.ts` returning `"Jun 15, 2026, 10:15 AM"` format (UTC). Follows same pattern as `formatDate` with added time.
+
+| Scenario            | GIVEN                    | WHEN               | THEN                               |
+| ------------------- | ------------------------ | ------------------ | ---------------------------------- |
+| Formats date + time | `"2026-06-15T12:00:00Z"` | `formatDateTime()` | Returns `"Jun 15, 2026, 12:00 PM"` |
+| Midnight            | `"2026-01-01T00:00:00Z"` | `formatDateTime()` | Returns `"Jan 1, 2026, 12:00 AM"`  |
+| Afternoon           | `"2026-06-15T14:30:00Z"` | `formatDateTime()` | Returns `"Jun 15, 2026, 2:30 PM"`  |
+
+### Requirement: AuditEntry molecule (Dashboard)
+
+Dashboard MUST provide an `AuditEntry` Server Component molecule that renders a timeline row: color-coded action badge, flag name link, human-readable description, and formatted timestamp.
+
+| Scenario       | GIVEN                          | WHEN rendered     | THEN                                                      |
+| -------------- | ------------------------------ | ----------------- | --------------------------------------------------------- |
+| CREATE action  | `action === "CREATE"`          | Component renders | Badge: green (`--success`) AND description: "was created" |
+| TOGGLE action  | `action === "TOGGLE"`          | Component renders | Badge: blue/accent AND description: "was toggled"         |
+| UPDATE action  | `action === "UPDATE"`          | Component renders | Badge: amber (`--warning`) AND description: "was updated" |
+| DELETE action  | `action === "DELETE"`          | Component renders | Badge: red (`--danger`) AND description: "was deleted"    |
+| Flag name link | Entry has `flagId`, `flagName` | Component renders | Flag name is a link to `/flags/[flagId]/edit`             |
+| Timestamp      | Entry has valid `createdAt`    | Component renders | Shows `formatDateTime(createdAt)` output                  |
+
+### Requirement: Audit page — global timeline (Dashboard)
+
+The `/audit` page MUST be a Server Component that calls `getAuditLogs()` and renders a vertical timeline. Replaces the existing placeholder.
+
+| Scenario   | GIVEN                            | WHEN page renders | THEN                                                              |
+| ---------- | -------------------------------- | ----------------- | ----------------------------------------------------------------- |
+| Logs exist | `getAuditLogs()` returns entries | Page renders      | Shows "Audit Log" heading AND timeline of `AuditEntry` components |
+| No logs    | `getAuditLogs()` returns `[]`    | Page renders      | Shows "Audit Log" heading AND "No audit logs yet" empty state     |
+| API error  | `getAuditLogs()` throws          | Page renders      | Shows error state explaining logs could not be loaded             |

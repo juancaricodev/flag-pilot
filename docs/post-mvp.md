@@ -64,6 +64,16 @@
 
 ---
 
+## Per-flag metrics endpoint
+
+- **Context**: The MVP metrics feature (`GET /api/metrics`) returns global stats for all flags. A per-flag endpoint would allow a detailed metrics view on each flag's edit page.
+- **Motivation**: Show evaluation stats directly on the flag detail/edit page — total evaluations, enabled vs disabled breakdown, and potentially time-based trends.
+- **Endpoint**: `GET /api/flags/:id/metrics` → `FlagMetrics` (single flag stats)
+- **UI**: Dedicated metrics section on `/flags/[id]/edit` page, or a new `/flags/[id]/metrics` route
+- **Ref**: `docs/tasks.md` — task 5.8 (metrics display)
+
+---
+
 ## Custom icons and branding assets
 
 - **Context**: Currently using Next.js default SVGs. Post-MVP replace with custom assets (logo, favicon, etc.).
