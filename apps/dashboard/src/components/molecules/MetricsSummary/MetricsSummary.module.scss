@@ -1,0 +1,13 @@
+@use '@/styles/mixins' as *;
+
+.container {
+  @include card;
+  padding: var(--space-4) var(--space-5);
+  margin-bottom: var(--space-6);
+}
+
+.total {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin: 0;
+}
