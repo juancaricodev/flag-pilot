@@ -18,3 +18,16 @@ export interface EvaluationContextRequest {
 export interface EvaluationResponse {
   enabled: boolean;
 }
+
+export interface FlagMetrics {
+  flagId: string;
+  flagName: string;
+  total: number;
+  enabled: number;
+  disabled: number;
+}
+
+export interface MetricsSummary {
+  totalEvaluations: number;
+  flags: FlagMetrics[];
+}
