@@ -2,7 +2,7 @@
 set -e
 
 echo "Running Prisma migrations..."
-npx prisma migrate deploy
+pnpm exec prisma migrate deploy
 
 echo "Starting API server..."
 exec node dist/main
