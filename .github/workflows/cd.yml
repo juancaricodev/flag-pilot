@@ -1,0 +1,69 @@
+name: CD — Deploy API to EC2
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Quality Gates + Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      # ─── 1. Clone the repo ──────────────────────────────────
+      - uses: actions/checkout@v4
+
+      # ─── 2. Install pnpm via Corepack ──────────────────────
+      - uses: pnpm/action-setup@v4
+
+      # ─── 3. Install Node.js ────────────────────────────────
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      # ─── 4. Install dependencies ───────────────────────────
+      - run: pnpm install --frozen-lockfile
+
+      # ─── 5. Generate Prisma Client ─────────────────────────
+      - run: pnpm --filter api exec prisma generate
+
+      # ─── 6. Quality gates (ALL must pass) ──────────────────
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+      # ─── 7. Deploy to EC2 via SSH ──────────────────────────
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /opt/flag-pilot
+            git pull origin main
+            docker compose -f docker-compose.prod.yml down
+            docker compose -f docker-compose.prod.yml up -d --build
+
+      # ─── 8. Post-deploy health check ───────────────────────
+      - name: Wait for API to start
+        run: sleep 15
+
+      - name: Health check
+        run: |
+          for i in 1 2 3; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://${{ secrets.EC2_HOST }}:3001/health || true)
+            if [ "$STATUS" = "200" ]; then
+              echo "Health check passed (attempt $i)"
+              exit 0
+            fi
+            echo "Health check failed (attempt $i), retrying in 10s..."
+            sleep 10
+          done
+          echo "Health check failed after 3 attempts"
+          exit 1
