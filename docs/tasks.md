@@ -93,7 +93,7 @@
 ## Phase 6: CI/CD
 
 - [x] 6.1 Create `.github/workflows/ci.yml` — lint, typecheck, test, build on PR
-- [ ] 6.2 Create `.github/workflows/cd.yml` — build + deploy on merge to main
+- [x] 6.2 Create `.github/workflows/cd.yml` — build + deploy on merge to main
 
 ## Phase 7: Testing
 

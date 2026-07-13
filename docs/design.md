@@ -34,12 +34,46 @@ Monorepo with Turborepo + pnpm workspaces. Two applications (Next.js Dashboard, 
 
 ### 2.3 Evaluation Cache
 
-| Option    | Decision                       |
-| --------- | ------------------------------ |
-| **Redis** | ✅ Selected                    |
-| No cache  | ❌ Won't meet <50ms under load |
+| Option    | Decision                        |
+| --------- | ------------------------------- |
+| **Redis** | ✅ Selected (deferred post-MVP) |
+| No cache  | ✅ Selected for MVP             |
 
-**Rationale**: Cache-aside pattern — if Redis is unavailable, fall back to PostgreSQL without breaking the system.
+**Rationale**: Cache-aside pattern deferred to post-MVP. For MVP, direct PostgreSQL queries are sufficient. Redis adds operational complexity (extra Docker container) that isn't justified for a portfolio project with low traffic.
+
+### 2.4 Deployment Architecture (MVP)
+
+```
+                    INTERNET
+                       │
+                       ▼
+              ┌────────────────┐
+              │   AWS EC2      │
+              │  (t3.micro)    │
+              │                │
+              │  ┌──────────┐  │
+              │  │ API      │  │  ← NestJS (HTTP port 3001)
+              │  │ (Docker) │  │
+              │  └────┬─────┘  │
+              │       │        │
+              │  ┌────▼─────┐  │
+              │  │ PostgreSQL│  │  ← Base de datos
+              │  │ (Docker) │  │
+              │  └──────────┘  │
+              └────────────────┘
+```
+
+**Key decisions:**
+
+| Decision                                | Rationale                                                                                                                          |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **EC2 over ECS/Lambda**                 | Portfolio-appropriate complexity. SSH deploy is 5 lines vs. ECR/ECS which requires IAM roles, task definitions, and AWS CLI config |
+| **HTTP only (port 3001)**               | No domain for Let's Encrypt. Auth cookies use `secure: false` temporarily. Post-MVP: add domain + nginx + HTTPS                    |
+| **Multi-stage Dockerfile**              | bcrypt compiles C++ (~200MB tools excluded from prod image). Production image is ~5MB vs ~100MB                                    |
+| **prisma migrate deploy in entrypoint** | Migrations apply automatically on container start. Idempotent, safe for production                                                 |
+| **SSH deploy from GitHub Actions**      | Push to main → quality gates → SSH into EC2 → git pull → docker compose rebuild                                                    |
+
+**Post-MVP**: Add domain name, nginx reverse proxy, Let's Encrypt SSL. See `docs/post-mvp.md`.
 
 ### 2.4 Backend Architecture
 
@@ -281,7 +315,10 @@ flag-pilot/
 │       │   ├── auth.e2e-spec.ts
 │       │   ├── evaluate.e2e-spec.ts
 │       │   ├── flags.e2e-spec.ts
+│       │   ├── health.e2e-spec.ts
 │       │   └── helpers/
+│       ├── Dockerfile                       # Multi-stage build: builder + production
+│       ├── docker-entrypoint.sh             # prisma migrate deploy → exec node dist/main
 │       └── src/
 │           ├── main.ts
 │           ├── app.module.ts
@@ -324,6 +361,8 @@ flag-pilot/
 │           ├── evaluation.ts               # Evaluation types
 │           ├── flag.ts                     # Flag, FlagStatus, CreateFlagInput, UpdateFlagInput
 │           └── metrics.ts                  # MetricsSummary, FlagMetrics
+├── docker-compose.prod.yml                 # Production: API + PostgreSQL
+├── .dockerignore                           # Docker build context exclusions
 ├── docs/                                   # Portfolio-facing documentation
 │   ├── PRD.md
 │   ├── design.md
@@ -454,6 +493,34 @@ SDK Client                    API (NestJS)                  Redis              P
     │                             │                          │                    │
 ```
 
+**Note**: Redis cache is deferred to post-MVP. Currently evaluates directly against PostgreSQL.
+
+---
+
+## 7. Data Flow — Deployment
+
+```
+Developer push to main
+  │
+  ├──► GitHub Actions (cd.yml)
+  │       │
+  │       ├── Quality gates: lint → typecheck → test → build
+  │       │
+  │       └── SSH to EC2
+  │             │
+  │             ├── git pull
+  │             ├── docker compose down
+  │             ├── docker compose up -d --build
+  │             │     │
+  │             │     ├── Dockerfile: builder → production
+  │             │     ├── docker-entrypoint.sh: prisma migrate → exec node
+  │             │     └── PostgreSQL: healthcheck
+  │             │
+  │             └── Health check: GET /health → 200
+  │
+  └──► API live at http://EC2_IP:3001
+```
+
 ---
 
 ## 7. Testing Strategy
@@ -462,11 +529,43 @@ SDK Client                    API (NestJS)                  Redis              P
 | --------------- | -------------------------------------------------- | --------------------------------------- |
 | **Unit**        | Services, evaluation logic (percentage, whitelist) | Jest, Prisma/Redis mocks                |
 | **Integration** | REST endpoints, auth flow, DB queries              | Supertest + testcontainers (PostgreSQL) |
-| **E2E**         | Full Dashboard (login → create flag → toggle)      | Playwright                              |
+| **E2E**         | Full Dashboard (login → create flag → toggle)      | Playwright (post-MVP)                   |
+| **Health**      | Health endpoint ignores auth headers               | Supertest + testcontainers (PostgreSQL) |
 
 ---
 
-## 8. Migration / Rollout
+## 8. CI/CD Pipeline
+
+### CI Workflow (`.github/workflows/ci.yml`)
+
+Triggers on PR to `main`:
+
+```
+pnpm lint → pnpm typecheck → pnpm test → pnpm build
+```
+
+### CD Workflow (`.github/workflows/cd.yml`)
+
+Triggers on push to `main`:
+
+```
+Quality gates (lint → typecheck → test → build)
+    │
+    └── SSH to EC2
+          git pull
+          docker compose down
+          docker compose up -d --build
+          health check (3 retries)
+```
+
+**Secrets required:**
+
+- `EC2_HOST` — EC2 public IP
+- `EC2_SSH_KEY` — SSH private key
+
+---
+
+## 9. Migration / Rollout
 
 No data migration required (greenfield project). Rollout plan:
 
@@ -478,11 +577,11 @@ No data migration required (greenfield project). Rollout plan:
 
 ---
 
-## 9. Open Questions
+## 10. Open Questions
 
 - [ ] **Polling vs SSE** — How should the Dashboard reflect changes in real time? Evaluate Server-Sent Events vs simple polling. Post-MVP.
-- [ ] **Deploy target** — AWS (ECS? Lambda? EC2?) — decide when ready to deploy.
-- [x] **Tests from day one** — Resolved: YES. Unit + integration tests for existing code (~124 dashboard + ~40 API unit + 25 API E2E = ~190 tests). TDD for all new code.
+- [x] **Deploy target** — Resolved: AWS EC2 (t3.micro) with Docker Compose. HTTP only for MVP, HTTPS post-MVP.
+- [x] **Tests from day one** — Resolved: YES. Unit + integration tests for existing code (~124 dashboard + ~40 API unit + 25 API E2E + 3 health E2E = ~192 tests). TDD for all new code.
 - [x] **Authentication method** — Resolved: JWT + httpOnly cookie. Login via Server Action in Dashboard.
-- [x] **Cache invalidation** — Resolved: TTL-based (30s cache-aside). Pub/sub evaluated as overkill for v1.
+- [x] **Cache invalidation** — Resolved: TTL-based (30s cache-aside). Post-MVP.
 - [x] **Server Actions vs fetch** — Resolved: Server Actions for all mutations. Server Components for data fetching. No proxy needed.
