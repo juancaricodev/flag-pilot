@@ -22,7 +22,7 @@ export function ensureTestDbConnection(): void {
     );
   }
 
-  const { uri } = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
+  const { uri } = JSON.parse(fs.readFileSync(metaPath, 'utf-8')) as { uri: string };
   process.env.DATABASE_URL = uri;
   connected = true;
 }

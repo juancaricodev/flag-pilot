@@ -2,7 +2,7 @@ import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export default async function () {
+export default function () {
   const metaPath = path.join(__dirname, '.testcontainers.json');
 
   if (!fs.existsSync(metaPath)) {
@@ -10,7 +10,7 @@ export default async function () {
     return;
   }
 
-  const { containerId } = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
+  const { containerId } = JSON.parse(fs.readFileSync(metaPath, 'utf-8')) as { containerId: string };
 
   try {
     execSync(`docker rm -f ${containerId}`, { stdio: 'ignore' });
