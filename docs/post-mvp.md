@@ -89,6 +89,42 @@
 
 ---
 
+## PostgreSQL backup strategy
+
+- **Context**: Currently no backup for production PostgreSQL on EC2. If the EBS volume is lost or corrupted, all data is gone.
+- **Motivation**: Prevent data loss in production.
+- **Options**:
+  - `pg_dump` cron job on EC2 (simple, manual restore)
+  - AWS EBS snapshots (automated, but costs ~$0.05/GB/mes)
+  - Logical replication to a standby
+- **Trade-offs**:
+  - `pg_dump` is free but requires manual restore
+  - EBS snapshots are automatic but add cost
+  - For a portfolio project, `pg_dump` daily is probably sufficient
+- **Ref**: Decided to skip for MVP (2026-07-13)
+
+---
+
+## Domain name + HTTPS with nginx
+
+- **Context**: MVP deploys with HTTP only (port 3001) and `secure: false` on auth cookies. This is insecure — cookies are sent over plain HTTP, vulnerable to interception.
+- **Motivation**: Production-grade security requires HTTPS. Auth cookies use `secure: true` which only works over HTTPS.
+- **What needs to happen**:
+  1. Buy a domain (e.g., `flagpilot.dev` — ~$10/year on Namecheap/Cloudflare)
+  2. Configure DNS: `flagpilot.dev` → Vercel (Dashboard), `api.flagpilot.dev` → EC2 (API)
+  3. Add nginx reverse proxy on EC2 with Let's Encrypt SSL certificates
+  4. Change `secure: false` back to `secure: process.env.NODE_ENV === 'production'` in auth.controller.ts
+  5. Update docker-compose.prod.yml to include nginx service
+  6. Expose ports 80/443 instead of 3001
+- **Architecture**:
+  ```
+  Internet → :443 (HTTPS) → nginx → :3001 (HTTP) → API
+  ```
+- **Key gotcha**: Let's Encrypt does NOT issue certificates for IP addresses — a domain is required.
+- **Ref**: Decided to defer for MVP (2026-07-13). Auth cookies temporarily use `secure: false`.
+
+---
+
 ## User roles and permissions
 
 - **Context**: Currently single admin only. Post-MVP support multiple roles (admin / viewer / manager).
