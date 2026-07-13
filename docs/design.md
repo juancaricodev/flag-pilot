@@ -65,13 +65,13 @@ Monorepo with Turborepo + pnpm workspaces. Two applications (Next.js Dashboard, 
 
 **Key decisions:**
 
-| Decision                                | Rationale                                                                                                                          |
-| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| **EC2 over ECS/Lambda**                 | Portfolio-appropriate complexity. SSH deploy is 5 lines vs. ECR/ECS which requires IAM roles, task definitions, and AWS CLI config |
-| **HTTP only (port 3001)**               | No domain for Let's Encrypt. Auth cookies use `secure: false` temporarily. Post-MVP: add domain + nginx + HTTPS                    |
-| **Multi-stage Dockerfile**              | bcrypt compiles C++ (~200MB tools excluded from prod image). Production image is ~5MB vs ~100MB                                    |
-| **prisma migrate deploy in entrypoint** | Migrations apply automatically on container start. Idempotent, safe for production                                                 |
-| **SSH deploy from GitHub Actions**      | Push to main → quality gates → SSH into EC2 → git pull → docker compose rebuild                                                    |
+| Decision                           | Rationale                                                                                                                          |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **EC2 over ECS/Lambda**            | Portfolio-appropriate complexity. SSH deploy is 5 lines vs. ECR/ECS which requires IAM roles, task definitions, and AWS CLI config |
+| **HTTP only (port 3001)**          | No domain for Let's Encrypt. Auth cookies use `secure: false` temporarily. Post-MVP: add domain + nginx + HTTPS                    |
+| **Multi-stage Dockerfile**         | bcrypt compiles C++ (~200MB tools excluded from prod image). Production image is ~5MB vs ~100MB                                    |
+| **Init container for migrations**  | Separate `migrate` service uses builder image (has prisma CLI). API stays clean, no prisma in prod deps. Idempotent, safe          |
+| **SSH deploy from GitHub Actions** | Push to main → quality gates → SSH into EC2 → git pull → docker compose rebuild                                                    |
 
 **Post-MVP**: Add domain name, nginx reverse proxy, Let's Encrypt SSL. See `docs/post-mvp.md`.
 
@@ -318,7 +318,7 @@ flag-pilot/
 │       │   ├── health.e2e-spec.ts
 │       │   └── helpers/
 │       ├── Dockerfile                       # Multi-stage build: builder + production
-│       ├── docker-entrypoint.sh             # prisma migrate deploy → exec node dist/main
+│       ├── docker-entrypoint.sh             # exec node dist/main (no migrations)
 │       └── src/
 │           ├── main.ts
 │           ├── app.module.ts
@@ -509,11 +509,12 @@ Developer push to main
   │       └── SSH to EC2
   │             │
   │             ├── git pull
-  │             ├── docker compose down
-  │             ├── docker compose up -d --build
+  │             ├── docker compose --env-file .env.prod down
+  │             ├── docker compose --env-file .env.prod up -d --build
   │             │     │
   │             │     ├── Dockerfile: builder → production
-  │             │     ├── docker-entrypoint.sh: prisma migrate → exec node
+  │             │     ├── migrate service: builder image → prisma migrate deploy
+  │             │     ├── api service: production image → exec node
   │             │     └── PostgreSQL: healthcheck
   │             │
   │             └── Health check: GET /health → 200
