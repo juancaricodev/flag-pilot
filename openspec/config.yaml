@@ -2,8 +2,8 @@
 schema: spec-driven
 
 context: |
-  Tech stack: Turborepo + pnpm 10 | NestJS 11 + Prisma 6 + PostgreSQL | Next.js 16 + React 19 + Sass
-  Architecture: Modular monolith (API) + Screaming Architecture (flags module) + Atomic Design (Dashboard)
+  Tech stack: Turborepo + pnpm 10 | NestJS 11 + Prisma 6 + PostgreSQL | Next.js 16 + React 19 + Sass | Docker + GitHub Actions CD
+  Architecture: Modular monolith (API) + Screaming Architecture (flags module) + Atomic Design (Dashboard) | Multi-stage Docker (API) + SSH deploy to EC2
   Testing: Jest 30 (both apps) + @testing-library/react (Dashboard) + supertest + testcontainers (API)
   Style: ESLint + Prettier + TypeScript strict + Husky/lint-staged + Pre-commit hooks
 
