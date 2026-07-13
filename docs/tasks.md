@@ -74,25 +74,25 @@
   - Pages: /flags/new (create), /flags/[id]/edit (edit + delete danger zone)
   - FlagCard: edit link navigation
   - Bugfix: CreateFlagDto missing rolloutPct → 400 on POST
-  - ✅ Typecheck, 124 tests, lint — todo verde
+  - ✅ Typecheck, 124 tests, lint — all green
 - [x] 5.6 **Toggle switch** — inline enable/disable ✅
   - Server Action: `toggleFlag(flagId, enabled)` — reads cookie, `PATCH /api/flags/:id`
   - Cache invalidation via `updateTag('flags')` + `refresh()` (Next.js 16 API)
   - FlagCard toggle: `<button role="switch" aria-checked>` with `window.confirm()` protection
   - CSS-only toggle (36x20px track + 16px thumb), loading state via `useState`
-  - ✅ Typecheck, tests — todo verde
+  - ✅ Typecheck, tests — all green
 - [x] 5.7 **Audit log timeline** ✅
   - New `GET /api/audit` endpoint + `AuditService.findAll()`
   - `AuditEntry` molecule: colored timeline with action badge, description, timestamp
   - Server Component page at `/audit` with header, subtitle, timeline, empty state
-  - ✅ Typecheck, 141 tests, lint — todo verde
+  - ✅ Typecheck, 141 tests, lint — all green
 - [x] 5.8 **Metrics display**
   - Server Component: fetch evaluation count from API
   - Display per-flag evaluation metrics and global summary
 
 ## Phase 6: CI/CD
 
-- [ ] 6.1 Create `.github/workflows/ci.yml` — lint, typecheck, test, build on PR
+- [x] 6.1 Create `.github/workflows/ci.yml` — lint, typecheck, test, build on PR
 - [ ] 6.2 Create `.github/workflows/cd.yml` — build + deploy on merge to main
 
 ## Phase 7: Testing
