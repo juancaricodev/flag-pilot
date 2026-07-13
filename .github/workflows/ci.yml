@@ -1,0 +1,58 @@
+name: CI
+
+# Trigger: runs on every PR to main and every push to main
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Permissions — minimum required (principle of least privilege)
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Lint, Typecheck, Test & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      # ─── 1. Clone the repo ──────────────────────────────────
+      - uses: actions/checkout@v4
+
+      # ─── 2. Install pnpm via Corepack ───────────────────────
+      # Corepack comes with Node.js 20+ and reads "packageManager" from package.json
+      - uses: pnpm/action-setup@v4
+        # No version needed: corepack detects pnpm@10.33.1 from package.json
+
+      # ─── 3. Install Node.js ─────────────────────────────────
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm  # Caches pnpm store between runs
+
+      # ─── 4. Install dependencies ────────────────────────────
+      - run: pnpm install --frozen-lockfile
+        # --frozen-lockfile: fails if pnpm-lock.yaml needs changes
+        # In CI we NEVER want implicit installs that modify the lockfile
+
+      # ─── 5. Generate Prisma Client ──────────────────────────
+      # Required before typecheck/test/build because the generated
+      # client is gitignored (apps/api/generated/)
+      - run: pnpm --filter api exec prisma generate
+
+      # ─── 6. Quality gates ───────────────────────────────────
+      # Each step is independent for clear debugging in CI
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+      # ─── 7. E2E tests (requires Docker) ─────────────────────
+      # testcontainers starts PostgreSQL in Docker, applies migrations,
+      # and runs tests against a real database
+      - run: pnpm --filter api test:e2e
+        env:
+          # testcontainers needs Docker — ubuntu-latest has it natively
+          # On macOS we'd need Colima (see testcontainers.setup.ts)
+          TESTCONTAINERS_RYUK_DISABLED: "false"
