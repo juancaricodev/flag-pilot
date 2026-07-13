@@ -66,6 +66,9 @@ COPY --from=builder /app/apps/api/dist ./apps/api/dist
 # Copy generated Prisma Client from builder
 COPY --from=builder /app/apps/api/generated ./apps/api/generated
 
+# Copy Prisma schema (needed for migrate deploy at runtime)
+COPY apps/api/prisma ./apps/api/prisma
+
 # Copy entrypoint script
 COPY apps/api/docker-entrypoint.sh ./apps/api/
 
