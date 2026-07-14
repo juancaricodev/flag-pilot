@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Flag Pilot Dashboard
+
+Feature flag management dashboard built with Next.js 16.
+
+## Tech Stack
+
+- **Framework**: Next.js 16 (App Router)
+- **React**: React 19
+- **Language**: TypeScript
+- **Styling**: CSS Modules + SCSS
+- **State**: Server Components + Server Actions
+
+## Architecture
+
+- **Atomic Design**: atoms → molecules → organisms
+- **Server Components by default** — `'use client'` only for interactivity
+- **Server Actions** for all mutations — never fetch from client
+- **No unit tests for page.tsx** — test data fetchers + components individually
+
+## Project Structure
+
+```
+src/
+├── app/              # App Router pages
+├── components/       # Atomic Design components
+│   ├── atoms/        # Basic UI elements
+│   ├── molecules/    # Component combinations
+│   └── organisms/    # Complex sections
+├── actions/          # Server Actions
+├── data/             # Data fetchers
+└── styles/           # Global styles
+```
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# Install dependencies
+pnpm install
+
+# Run development server
 pnpm dev
-# or
-bun dev
+
+# Open in browser
+open http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Testing
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Run tests
+pnpm test
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Run tests in watch mode
+pnpm test:watch
+
+# Run tests with coverage
+pnpm test:cov
+```
+
+## Environment Variables
+
+```env
+# API URL for Server Actions (server-side only)
+API_URL=http://localhost:3001
+
+# API URL for client components (exposed to browser)
+NEXT_PUBLIC_API_URL=http://localhost:3001
+```
+
+## Deployment
+
+Automatically deployed to Vercel on push to `main`.
+
+- **Production**: [flag-pilot-dashboard.vercel.app](https://flag-pilot-dashboard.vercel.app)
 
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Next.js Documentation](https://nextjs.org/docs)
+- [React 19 Documentation](https://react.dev)
