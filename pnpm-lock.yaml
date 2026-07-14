@@ -55,6 +55,9 @@ importers:
       cookie-parser:
         specifier: ^1.4.7
         version: 1.4.7
+      morgan:
+        specifier: ^1.11.0
+        version: 1.11.0
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
@@ -119,9 +122,6 @@ importers:
       jest:
         specifier: ^30.0.0
         version: 30.4.2(@types/node@24.13.2)(ts-node@10.9.2(@types/node@24.13.2)(typescript@5.9.3))
-      morgan:
-        specifier: ^1.11.0
-        version: 1.11.0
       prettier:
         specifier: ^3.4.2
         version: 3.8.4
