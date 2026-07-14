@@ -37,33 +37,34 @@ jobs:
       - run: pnpm test
       - run: pnpm build
 
-      # ─── 7. Deploy to EC2 via SSH ──────────────────────────
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd /opt/flag-pilot
-            git pull origin main
-            docker compose --env-file .env.prod -f docker-compose.prod.yml down
-            docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
+      # ─── 7. Deploy to EC2 via SSH (TEMPORARILY DISABLED) ─────
+      # TODO: Re-enable when EC2 secrets are configured
+      # - name: Deploy to EC2
+      #   uses: appleboy/ssh-action@v1.2.0
+      #   with:
+      #     host: ${{ secrets.EC2_HOST }}
+      #     username: ubuntu
+      #     key: ${{ secrets.EC2_SSH_KEY }}
+      #     script: |
+      #       cd /opt/flag-pilot
+      #       git pull origin main
+      #       docker compose --env-file .env.prod -f docker-compose.prod.yml down
+      #       docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
 
-      # ─── 8. Post-deploy health check ───────────────────────
-      - name: Wait for API to start
-        run: sleep 15
+      # ─── 8. Post-deploy health check (TEMPORARILY DISABLED) ──
+      # - name: Wait for API to start
+      #   run: sleep 15
 
-      - name: Health check
-        run: |
-          for i in 1 2 3; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://${{ secrets.EC2_HOST }}:3001/health || true)
-            if [ "$STATUS" = "200" ]; then
-              echo "Health check passed (attempt $i)"
-              exit 0
-            fi
-            echo "Health check failed (attempt $i), retrying in 10s..."
-            sleep 10
-          done
-          echo "Health check failed after 3 attempts"
-          exit 1
+      # - name: Health check
+      #   run: |
+      #     for i in 1 2 3; do
+      #       STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://${{ secrets.EC2_HOST }}:3001/health || true)
+      #       if [ "$STATUS" = "200" ]; then
+      #         echo "Health check passed (attempt $i)"
+      #         exit 0
+      #       fi
+      #       echo "Health check failed (attempt $i), retrying in 10s..."
+      #       sleep 10
+      #     done
+      #     echo "Health check failed after 3 attempts"
+      #     exit 1
