@@ -101,24 +101,44 @@ pnpm --filter api test:cov        # Coverage
 
 ---
 
-## Commit & Pull Request Guidelines
+## Development Workflow
 
-Follow conventional-commit style: `<type>: <description>`
+> **Rule: No direct pushes to `main`.** All work goes through branches and pull requests.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide (branch naming, PR process, user stories, SDD flow).
+
+### Quick Reference
+
+- **Branch**: `feature/user-story-XXX` or `fix/<description>`
+- **PR**: Conventional commit title, link user story, CI must pass
+- **Merge**: Merge commit with at least 1 approval (no squash — preserve full history)
+- **Flow**: User Story → SDD phases → Implementation → PR → Review → Merge
+
+### Commit Convention
+
+Follow conventional-commit style: `<type>(<scope>): <description>`
 
 **Types:** `feat`, `fix`, `docs`, `chore`, `perf`, `refactor`, `style`, `test`
+
+**Scopes:** `api`, `dashboard`, `shared`, `ci`, `docs`
 
 Rules:
 
 - Commits must be in English
-- **After completing any feature or change, ALWAYS update documentation BEFORE making the final commit:**
-  1. `docs/tasks.md` — mark completed items with `[x]`
-  2. `docs/design.md` — document architecture decisions made
-  3. `docs/specs.md` — add new requirements if applicable
-  4. `openspec/specs/` — sync merged specs if requirements changed
-  5. `openspec/config.yaml` — update project context if architecture changed
-  - `docs/` is the portfolio-facing documentation — it must reflect the current state of the project
-  - `openspec/changes/` artifacts are gitignored and live only in Engram, but `openspec/specs/` + `config.yaml` are the permanent tracked record
-  - `openspec/config.yaml` at the root level (NOT `openspec/changes/`)
+
+### Documentation Updates
+
+**After completing any feature or change, ALWAYS update documentation BEFORE making the final commit:**
+
+1. `docs/tasks.md` — mark completed items with `[x]`
+2. `docs/design.md` — document architecture decisions made
+3. `docs/specs.md` — add new requirements if applicable
+4. `openspec/specs/` — sync merged specs if requirements changed
+5. `openspec/config.yaml` — update project context if architecture changed
+
+- `docs/` is the portfolio-facing documentation — it must reflect the current state of the project
+- `openspec/changes/` artifacts are gitignored and live only in Engram, but `openspec/specs/` + `config.yaml` are the permanent tracked record
+- `openspec/config.yaml` at the root level (NOT `openspec/changes/`)
 
 ---
 
@@ -159,7 +179,24 @@ The orchestrator (this agent) DELEGATES every SDD phase to the appropriate sub-a
 
 **Rule: "Delegate, present, wait"** — the orchestrator delegates the work to a sub-agent, presents the result, and pauses. Moving to the next phase without human approval is a violation of this protocol.
 
-### Exceptions
+### Rules — Non-negotiable
 
-- If the human explicitly says "seguí adelante" / "keep going without asking" / "dame todo", the orchestrator MAY skip the wait between phases
-- If the human says "hace todo con SDD", the orchestrator MUST clarify: "¿Querés que lo haga fase por fase con aprobación, o todo de una y te muestro el resultado final?"
+1. **NEVER write code or documentation directly** — always delegate to sub-agents
+2. **NEVER skip phases** — even if the human says "keep going", delegate to sub-agents in order
+3. **Ask permission before writing** — if no sub-agent exists for a task, ASK the human before writing code or docs yourself
+4. **Wait for approval** — between every phase, unless the human explicitly says otherwise
+
+### Exceptions (when the human says "keep going")
+
+- The orchestrator MAY skip the **wait** between phases
+- The orchestrator MUST STILL delegate to sub-agents — "keep going" means "don't pause to ask me", NOT "do it yourself"
+- If the human says "do it all with SDD", the orchestrator MUST clarify: "Do you want me to go phase by phase with approval, or do everything and show you the final result?"
+
+### What "keep going" means
+
+| ✅ Allowed                        | ❌ Not allowed                             |
+| --------------------------------- | ------------------------------------------ |
+| Skip the pause between phases     | Write code directly                        |
+| Launch next sub-agent immediately | Write documentation directly               |
+| Batch multiple phases in one go   | Skip delegation entirely                   |
+| Assume approval for routine steps | Make architecture decisions without asking |

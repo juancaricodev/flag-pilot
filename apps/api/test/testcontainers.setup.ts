@@ -28,6 +28,7 @@ export default async function () {
 
   const container = await new PostgreSqlContainer('postgres:16-alpine')
     .withDatabase('flag_pilot_test')
+    .withStartupTimeout(90000) // 90s — GitHub Actions runners are slower than local
     .start();
 
   const uri = container.getConnectionUri();

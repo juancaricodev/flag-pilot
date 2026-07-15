@@ -28,7 +28,7 @@ jobs:
       # ─── 3. Install Node.js ─────────────────────────────────
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm  # Caches pnpm store between runs
 
       # ─── 4. Install dependencies ────────────────────────────
@@ -48,10 +48,28 @@ jobs:
       - run: pnpm test
       - run: pnpm build
 
-      # ─── 7. E2E tests (TEMPORARILY DISABLED) ────────────────
-      # TODO: Re-enable when testcontainers is stable in GitHub Actions
-      # testcontainers starts PostgreSQL in Docker, applies migrations,
-      # and runs tests against a real database
-      # - run: pnpm --filter api test:e2e
-      #   env:
-      #     TESTCONTAINERS_RYUK_DISABLED: "false"
+      # ─── 7. E2E tests ────────────────────────────────────────
+      # Pre-pull PostgreSQL image to separate download time from
+      # testcontainers startup timeout (GitHub Actions runners are slow)
+      - name: Cache Docker images
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.docker-cache
+          key: docker-${{ runner.os }}-postgres-16-alpine
+
+      - name: Pre-pull PostgreSQL image
+        run: |
+          docker pull postgres:16-alpine
+          mkdir -p /tmp/.docker-cache
+          docker save postgres:16-alpine -o /tmp/.docker-cache/postgres-16-alpine.tar || true
+
+      - name: Restore Docker image cache
+        run: |
+          if [ -f /tmp/.docker-cache/postgres-16-alpine.tar ]; then
+            docker load -i /tmp/.docker-cache/postgres-16-alpine.tar || true
+          fi
+
+      - name: Run E2E tests
+        run: pnpm --filter api test:e2e
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: "false"

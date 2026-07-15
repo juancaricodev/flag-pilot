@@ -162,6 +162,12 @@ docker-compose --env-file .env.prod -f docker-compose.prod.yml up -d
 | PATCH  | `/flags/:id`     | Update a flag     |
 | DELETE | `/flags/:id`     | Delete a flag     |
 
+## Contributing
+
+We follow a professional development workflow with branch-based development, pull requests, and Spec-Driven Development (SDD).
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

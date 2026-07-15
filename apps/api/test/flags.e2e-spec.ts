@@ -14,9 +14,12 @@ describe('Flags (e2e)', () => {
     prisma = app.get(PrismaService);
 
     // Seed an admin user for authenticated requests
+    // Use upsert because the auth test may have already created this admin
     const passwordHash = await bcrypt.hash('admin123', 10);
-    await prisma.admin.create({
-      data: {
+    await prisma.admin.upsert({
+      where: { email: 'admin@flagpilot.dev' },
+      update: { passwordHash },
+      create: {
         id: 'flags-test-admin',
         email: 'admin@flagpilot.dev',
         passwordHash,
