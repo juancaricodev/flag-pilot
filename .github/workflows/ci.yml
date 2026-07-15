@@ -48,10 +48,9 @@ jobs:
       - run: pnpm test
       - run: pnpm build
 
-      # ─── 7. E2E tests (TEMPORARILY DISABLED) ────────────────
-      # TODO: Re-enable when testcontainers is stable in GitHub Actions
+      # ─── 7. E2E tests ────────────────────────────────────────
       # testcontainers starts PostgreSQL in Docker, applies migrations,
       # and runs tests against a real database
-      # - run: pnpm --filter api test:e2e
-      #   env:
-      #     TESTCONTAINERS_RYUK_DISABLED: "false"
+      - run: pnpm --filter api test:e2e
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: "false"
