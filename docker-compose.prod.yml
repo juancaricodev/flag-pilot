@@ -5,6 +5,7 @@ services:
       dockerfile: apps/api/Dockerfile
       target: builder
     command: ["pnpm", "--filter", "api", "exec", "prisma", "migrate", "deploy"]
+    env_file: .env.prod
     environment:
       DATABASE_URL: postgresql://flag_pilot:${POSTGRES_PASSWORD}@postgres:5432/flag_pilot
     depends_on:
@@ -19,6 +20,7 @@ services:
     restart: unless-stopped
     ports:
       - "3001:3001"
+    env_file: .env.prod
     environment:
       DATABASE_URL: postgresql://flag_pilot:${POSTGRES_PASSWORD}@postgres:5432/flag_pilot
       JWT_SECRET: ${JWT_SECRET}
