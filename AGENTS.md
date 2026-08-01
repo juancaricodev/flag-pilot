@@ -187,6 +187,13 @@ The orchestrator (this agent) DELEGATES every SDD phase to the appropriate sub-a
 
 1. **Approved user story required** — every SDD change MUST start with an approved GitHub issue (user story, `status:approved`) BEFORE launching any SDD sub-agent. If the issue doesn't exist, create it via the `issue-creation` skill (template + labels) and get `status:approved`. **No user story → no SDD sub-agent.** The only exception is an explicit human request to skip the gate.
 
+### Orchestrator Launch Duties — Non-negotiable
+
+> These duties exist because sub-agent self-discovery is a fallback, not a mechanism. If the orchestrator does not inject, the sub-agent runs blind — that is an ORCHESTRATOR failure, never a sub-agent failure.
+
+1. **TDD mode injection** — before launching `sdd-apply` or `sdd-verify`, the orchestrator MUST resolve TDD mode from `openspec/config.yaml` (`strict_tdd` + testing section) and inject `STRICT TDD MODE IS ACTIVE` or `STANDARD MODE` verbatim into the sub-agent prompt. Never rely on sub-agent self-discovery.
+2. **Registry injection** — before launching ANY SDD sub-agent, the orchestrator MUST read `.atl/skill-registry.md` (delegator-use-only) and inject its compact rules into the sub-agent prompt. Sub-agents never read the registry themselves.
+
 ### Rules — Non-negotiable
 
 1. **NEVER write code or documentation directly** — always delegate to sub-agents
