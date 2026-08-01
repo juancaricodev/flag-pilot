@@ -104,6 +104,8 @@ pnpm --filter api test:cov        # Coverage
 ## Development Workflow
 
 > **Rule: No direct pushes to `main`.** All work goes through branches and pull requests.
+>
+> **Rule: SDD by default.** Every change (feature, fix, docs, chore) goes through the SDD flow unless the human EXPLICITLY asks to skip it. "Do it directly" is the only valid skip signal — never assume a skip.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide (branch naming, PR process, user stories, SDD flow).
 
@@ -178,6 +180,12 @@ The orchestrator (this agent) DELEGATES every SDD phase to the appropriate sub-a
 | 7   | **Archive** | `sdd-archive` | Launch sub-agent ONLY with explicit confirmation         |
 
 **Rule: "Delegate, present, wait"** — the orchestrator delegates the work to a sub-agent, presents the result, and pauses. Moving to the next phase without human approval is a violation of this protocol.
+
+### Workflow Gate — Non-negotiable
+
+> **SDD by default**: every change goes through the SDD flow (User Story → SDD phases → Implementation → PR → Review → Merge) unless the human EXPLICITLY says otherwise. A skip is NEVER assumed — the human must ask for it ("do it directly").
+
+1. **Approved user story required** — every SDD change MUST start with an approved GitHub issue (user story, `status:approved`) BEFORE launching any SDD sub-agent. If the issue doesn't exist, create it via the `issue-creation` skill (template + labels) and get `status:approved`. **No user story → no SDD sub-agent.** The only exception is an explicit human request to skip the gate.
 
 ### Rules — Non-negotiable
 
