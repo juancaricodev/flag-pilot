@@ -170,6 +170,19 @@
 
 ---
 
+## API CORS configuration (prereq for browser clients)
+
+- **Context**: The API has no CORS configuration. Server-to-server flows (Server Actions) are unaffected, but any browser-based client (SDK playground, third-party integrations) needs CORS enabled with an origin whitelist.
+- **Motivation**: Requirement for the client-side SDK task above — browsers enforce CORS on cross-origin `fetch()`.
+- **What needs to happen**:
+  1. Add `app.enableCors()` in `apps/api/src/main.ts` with `origin` from a `CORS_ORIGIN` env var and `credentials: true`
+  2. Add `CORS_ORIGIN` to `docker-compose.prod.yml` and the EC2 `.env.prod`
+  3. Verify with `curl -H "Origin: <dashboard-url>" http://<api>/api/flags` returning CORS headers
+- **History**: Originally proposed 2026-07-13 as `fix-cross-origin-api-communication` (openspec change) after a production "fetch failed" — root cause was network-level (Vercel → EC2), not CORS. Change cancelled on 2026-08-01: CORS is irrelevant for the current Server Action flow and is deferred to the SDK task.
+- **Gotcha**: `sameSite: 'none'` cookies require `secure: true` on modern browsers — do not set `sameSite: 'none'` without HTTPS.
+
+---
+
 ## Multi-environment support
 
 - **Context**: Currently a single environment. Post-MVP support dev / staging / prod with separate flag states per environment.
