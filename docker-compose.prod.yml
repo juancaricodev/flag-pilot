@@ -23,6 +23,7 @@ services:
     env_file: .env.prod
     environment:
       DATABASE_URL: postgresql://flag_pilot:${POSTGRES_PASSWORD}@postgres:5432/flag_pilot
+      REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET}
       NODE_ENV: production
     depends_on:
@@ -36,6 +37,15 @@ services:
       timeout: 5s
       retries: 3
       start_period: 15s
+
+  # Redis cache for evaluation cache-aside (30s TTL).
+  # No depends_on from api: the API must boot and serve WITHOUT Redis —
+  # FlagCacheService degrades every op to a cache miss (Keyv reconnects).
+  redis:
+    image: redis:7-alpine
+    container_name: flag-pilot-redis
+    restart: unless-stopped
+    command: ["redis-server", "--maxmemory", "64mb", "--maxmemory-policy", "volatile-lru"]
 
   postgres:
     image: postgres:16-alpine
