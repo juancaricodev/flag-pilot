@@ -108,10 +108,12 @@ chmod 600 /opt/flag-pilot/.env.prod
 
 **Important**: Replace `your_secure_password_here` and `your_jwt_secret_here` with strong, unique values.
 
+**Redis**: no environment config needed — `docker-compose.prod.yml` wires `REDIS_URL: redis://redis:6379` to the `redis:7-alpine` service. The API boots and serves without Redis (cache ops degrade to misses until Redis reconnects).
+
 ### Step 6: Test Deployment (Manual)
 
 ```bash
-# Start all services (postgres → migrate → api)
+# Start all services (postgres → migrate → api → redis)
 docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
 
 # Check status

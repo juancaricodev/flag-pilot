@@ -34,12 +34,11 @@ Monorepo with Turborepo + pnpm workspaces. Two applications (Next.js Dashboard, 
 
 ### 2.3 Evaluation Cache
 
-| Option    | Decision                        |
-| --------- | ------------------------------- |
-| **Redis** | ✅ Selected (deferred post-MVP) |
-| No cache  | ✅ Selected for MVP             |
+| Option    | Decision          |
+| --------- | ----------------- |
+| **Redis** | ✅ Selected (MVP) |
 
-**Rationale**: Cache-aside pattern deferred to post-MVP. For MVP, direct PostgreSQL queries are sufficient. Redis adds operational complexity (extra Docker container) that isn't justified for a portfolio project with low traffic.
+**Rationale**: Cache-aside with a 30s TTL. Evaluation reads hit Redis first; an admin mutation eagerly invalidates the flag's key (write-then-delete); the TTL is the backstop for any missed invalidation. Cost: one container in prod compose (`redis:7-alpine`, 64mb maxmemory). Resilience: the cache wrapper never throws — Redis down degrades every op to a cache miss and the API keeps serving direct PostgreSQL reads.
 
 ### 2.4 Deployment Architecture (MVP)
 
@@ -493,7 +492,7 @@ SDK Client                    API (NestJS)                  Redis              P
     │                             │                          │                    │
 ```
 
-**Note**: Redis cache is deferred to post-MVP. Currently evaluates directly against PostgreSQL.
+**Note**: Cache-aside (30s TTL) is live. A hit skips the DB read; an admin mutation eagerly deletes `flag:{name}` (create/update/remove, old+new keys on rename); a Redis outage degrades every op to a cache miss. Evaluation events are recorded on both hits and misses.
 
 ---
 
@@ -584,5 +583,5 @@ No data migration required (greenfield project). Rollout plan:
 - [x] **Deploy target** — Resolved: AWS EC2 (t3.micro) with Docker Compose. HTTP only for MVP, HTTPS post-MVP.
 - [x] **Tests from day one** — Resolved: YES. Unit + integration tests for existing code (~124 dashboard + ~40 API unit + 25 API E2E + 3 health E2E = ~192 tests). TDD for all new code.
 - [x] **Authentication method** — Resolved: JWT + httpOnly cookie. Login via Server Action in Dashboard.
-- [x] **Cache invalidation** — Resolved: TTL-based (30s cache-aside). Post-MVP.
+- [x] **Cache invalidation** — Resolved: eager invalidation on flag mutations (write-then-delete) + TTL-based (30s cache-aside) backstop. Shipped.
 - [x] **Server Actions vs fetch** — Resolved: Server Actions for all mutations. Server Components for data fetching. No proxy needed.
