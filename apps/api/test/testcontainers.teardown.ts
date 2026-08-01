@@ -10,14 +10,19 @@ export default function () {
     return;
   }
 
-  const { containerId } = JSON.parse(fs.readFileSync(metaPath, 'utf-8')) as { containerId: string };
+  const { containerId, redisContainerId } = JSON.parse(fs.readFileSync(metaPath, 'utf-8')) as {
+    containerId: string;
+    redisContainerId?: string;
+  };
 
-  try {
-    execSync(`docker rm -f ${containerId}`, { stdio: 'ignore' });
-    console.log('🧹 Test container stopped and removed.');
-  } catch {
-    console.warn('⚠️  Could not stop container — may have been reaped by Ryuk already.');
+  for (const id of [containerId, redisContainerId].filter(Boolean) as string[]) {
+    try {
+      execSync(`docker rm -f ${id}`, { stdio: 'ignore' });
+    } catch {
+      console.warn('⚠️  Could not stop container — may have been reaped by Ryuk already.');
+    }
   }
 
+  console.log('🧹 Test containers stopped and removed.');
   fs.unlinkSync(metaPath);
 }

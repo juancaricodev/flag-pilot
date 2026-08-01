@@ -49,13 +49,13 @@ jobs:
       - run: pnpm build
 
       # ─── 7. E2E tests ────────────────────────────────────────
-      # Pre-pull PostgreSQL image to separate download time from
+      # Pre-pull PostgreSQL + Redis images to separate download time from
       # testcontainers startup timeout (GitHub Actions runners are slow)
       - name: Cache Docker images
         uses: actions/cache@v4
         with:
           path: /tmp/.docker-cache
-          key: docker-${{ runner.os }}-postgres-16-alpine
+          key: docker-${{ runner.os }}-pg-redis
 
       - name: Pre-pull PostgreSQL image
         run: |
@@ -63,10 +63,19 @@ jobs:
           mkdir -p /tmp/.docker-cache
           docker save postgres:16-alpine -o /tmp/.docker-cache/postgres-16-alpine.tar || true
 
+      - name: Pre-pull Redis image
+        run: |
+          docker pull redis:7-alpine
+          mkdir -p /tmp/.docker-cache
+          docker save redis:7-alpine -o /tmp/.docker-cache/redis-7-alpine.tar || true
+
       - name: Restore Docker image cache
         run: |
           if [ -f /tmp/.docker-cache/postgres-16-alpine.tar ]; then
             docker load -i /tmp/.docker-cache/postgres-16-alpine.tar || true
+          fi
+          if [ -f /tmp/.docker-cache/redis-7-alpine.tar ]; then
+            docker load -i /tmp/.docker-cache/redis-7-alpine.tar || true
           fi
 
       - name: Run E2E tests
