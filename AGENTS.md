@@ -111,7 +111,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide (branch naming, PR pro
 
 ### Quick Reference
 
-- **Branch**: `feature/user-story-XXX` or `fix/<description>`
+- **Branch**: `<type>/<description>` — semantic (e.g. `feat/redis-cache-aside`, `docs/comment-convention`). Traceability links live in the PR, not the branch name
 - **PR**: Conventional commit title, link user story, CI must pass
 - **Merge**: Merge commit with at least 1 approval (no squash — preserve full history)
 - **Flow**: User Story → SDD phases (Apply → Verify → Archive, all in the feature branch) → PR → Review → Merge
