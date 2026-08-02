@@ -114,7 +114,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide (branch naming, PR pro
 - **Branch**: `feature/user-story-XXX` or `fix/<description>`
 - **PR**: Conventional commit title, link user story, CI must pass
 - **Merge**: Merge commit with at least 1 approval (no squash — preserve full history)
-- **Flow**: User Story → SDD phases → Implementation → PR → Review → Merge
+- **Flow**: User Story → SDD phases (Apply → Verify → Archive, all in the feature branch) → PR → Review → Merge
 
 ### Commit Convention
 
@@ -137,6 +137,8 @@ Rules:
 3. `docs/specs.md` — add new requirements if applicable
 4. `openspec/specs/` — sync merged specs if requirements changed
 5. `openspec/config.yaml` — update project context if architecture changed
+
+**Documentation lives in the feature PR.** All doc updates (including the `openspec/specs/` sync) happen IN the feature branch during the Archive phase — NEVER post-merge. A docs-only PR opened after a feature merge is a process violation.
 
 - `docs/` is the portfolio-facing documentation — it must reflect the current state of the project
 - `openspec/changes/` artifacts are gitignored and live only in Engram, but `openspec/specs/` + `config.yaml` are the permanent tracked record
@@ -170,21 +172,21 @@ The orchestrator (this agent) DELEGATES every SDD phase to the appropriate sub-a
 
 ### Phase flow
 
-| #   | Phase       | Sub-agent     | How it works                                             |
-| --- | ----------- | ------------- | -------------------------------------------------------- |
-| 1   | **Propose** | `sdd-propose` | Launch sub-agent → present result → WAIT for approval    |
-| 2   | **Spec**    | `sdd-spec`    | Launch sub-agent → present result → WAIT for approval    |
-| 3   | **Design**  | `sdd-design`  | Launch sub-agent → present result → WAIT for approval    |
-| 4   | **Tasks**   | `sdd-tasks`   | Launch sub-agent → present result → WAIT for approval    |
-| 5   | **Apply**   | `sdd-apply`   | Launch sub-agent ONLY after tasks approved               |
-| 6   | **Verify**  | `sdd-verify`  | Launch sub-agent → present results → WAIT before archive |
-| 7   | **Archive** | `sdd-archive` | Launch sub-agent ONLY with explicit confirmation         |
+| #   | Phase       | Sub-agent     | How it works                                                                                                                         |
+| --- | ----------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | **Propose** | `sdd-propose` | Launch sub-agent → present result → WAIT for approval                                                                                |
+| 2   | **Spec**    | `sdd-spec`    | Launch sub-agent → present result → WAIT for approval                                                                                |
+| 3   | **Design**  | `sdd-design`  | Launch sub-agent → present result → WAIT for approval                                                                                |
+| 4   | **Tasks**   | `sdd-tasks`   | Launch sub-agent → present result → WAIT for approval                                                                                |
+| 5   | **Apply**   | `sdd-apply`   | Launch sub-agent ONLY after tasks approved                                                                                           |
+| 6   | **Verify**  | `sdd-verify`  | Launch sub-agent → present results → WAIT before archive                                                                             |
+| 7   | **Archive** | `sdd-archive` | Launch sub-agent ONLY with explicit confirmation — runs IN the feature branch BEFORE the PR; commits the spec/doc sync to the branch |
 
 **Rule: "Delegate, present, wait"** — the orchestrator delegates the work to a sub-agent, presents the result, and pauses. Moving to the next phase without human approval is a violation of this protocol.
 
 ### Workflow Gate — Non-negotiable
 
-> **SDD by default**: every change goes through the SDD flow (User Story → SDD phases → Implementation → PR → Review → Merge) unless the human EXPLICITLY says otherwise. A skip is NEVER assumed — the human must ask for it ("do it directly").
+> **SDD by default**: every change goes through the SDD flow (User Story → SDD phases → PR → Review → Merge — the Archive phase runs in the feature branch BEFORE the PR, so docs + spec sync ship inside the feature PR) unless the human EXPLICITLY says otherwise. A skip is NEVER assumed — the human must ask for it ("do it directly").
 
 1. **Approved user story required** — every SDD change MUST start with an approved GitHub issue (user story, `status:approved`) BEFORE launching any SDD sub-agent. If the issue doesn't exist, create it via the `issue-creation` skill (template + labels) and get `status:approved`. **No user story → no SDD sub-agent.** The only exception is an explicit human request to skip the gate.
 
