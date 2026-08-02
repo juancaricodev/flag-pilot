@@ -322,6 +322,10 @@ flag-pilot/
 │           ├── main.ts
 │           ├── app.module.ts
 │           ├── prisma/                     # PrismaModule + PrismaService
+│           ├── flag-cache/                 # FlagCacheService — Redis cache-aside wrapper (never throws)
+│           │   ├── flag-cache.module.ts
+│           │   ├── flag-cache.service.ts
+│           │   └── flag-cache.service.spec.ts
 │           ├── flags/                      # Screaming Architecture module
 │           │   ├── flags.module.ts
 │           │   ├── presentation/
