@@ -211,7 +211,7 @@ describe('Evaluate (e2e)', () => {
   });
 
   // -----------------------------------------------------------------------
-  // Eager cache invalidation via real FlagService mutations (D5)
+  // Eager cache invalidation via real FlagService mutations
   // -----------------------------------------------------------------------
   describe('Flag mutations invalidate the cache', () => {
     let flags: FlagsService;

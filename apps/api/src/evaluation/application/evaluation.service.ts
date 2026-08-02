@@ -78,7 +78,7 @@ export class EvaluationService {
     return result;
   }
 
-  /** Maps a Prisma flag row to the cacheable FlagConfig (D2 — plain JSON). */
+  /** Maps a Prisma flag row to the cacheable FlagConfig (plain JSON). */
   private toConfig(flag: {
     id: string;
     enabled: boolean;

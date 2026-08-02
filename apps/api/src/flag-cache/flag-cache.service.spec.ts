@@ -63,7 +63,7 @@ describe('FlagCacheService', () => {
   // set(name, config) — populates the cache on a miss
   // ---------------------------------------------------------------------------
   describe('set', () => {
-    it('stores the config under flag:{name} with the 30s TTL in milliseconds (D3)', async () => {
+    it('stores the config under flag:{name} with the 30s TTL in milliseconds', async () => {
       mockCache.set.mockResolvedValue(true);
 
       await service.set('new-checkout', config);

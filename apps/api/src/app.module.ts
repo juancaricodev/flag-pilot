@@ -23,7 +23,7 @@ import { FLAG_CACHE_TTL } from './flag-cache/flag-cache.service';
           namespace: 'flag',
         });
 
-        // MANDATORY (D4): Keyv emits 'error' on connection failures. An
+        // Keyv emits 'error' on connection failures. An
         // unhandled 'error' event on an EventEmitter crashes the Node process.
         // The FlagCacheService wrapper try/catches every op as belt-and-braces.
         store.on('error', (err: Error) =>

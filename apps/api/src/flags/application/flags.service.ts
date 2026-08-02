@@ -29,7 +29,7 @@ export class FlagsService {
       },
     });
 
-    // Eager invalidation (D5): del AFTER the successful write — a re-created
+    // Eager invalidation: del AFTER the successful write — a re-created
     // flag must not be served from a stale cached config.
     await this.invalidate(dto.name);
 
@@ -65,7 +65,7 @@ export class FlagsService {
       data: dto,
     });
 
-    // Eager invalidation (D5): del both keys — rename-safe. When the name is
+    // Eager invalidation: del both keys — rename-safe. When the name is
     // unchanged the double-del is harmless. Runs AFTER the successful write.
     await this.invalidate(before.name);
     await this.invalidate(flag.name);
@@ -96,7 +96,7 @@ export class FlagsService {
 
     await this.prisma.flag.delete({ where: { id } });
 
-    // Eager invalidation (D5): del AFTER the successful delete — a removed
+    // Eager invalidation: del AFTER the successful delete — a removed
     // flag must not keep answering `true` from a cached config.
     await this.invalidate(before.name);
   }

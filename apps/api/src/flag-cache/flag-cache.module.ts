@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { FlagCacheService } from './flag-cache.service';
 
 /**
- * Infra module mirroring src/prisma/ (D1): single home for cache key format,
+ * Infra module mirroring src/prisma/: single home for cache key format,
  * TTL, serialization and error-swallowing. No imports — the global
  * CACHE_MANAGER (registered in AppModule) is injectable everywhere.
  */

@@ -319,7 +319,7 @@ describe('FlagsService', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // Eager cache invalidation (D5 — del AFTER the successful Prisma write)
+  // Eager cache invalidation (del AFTER the successful Prisma write)
   // ---------------------------------------------------------------------------
   describe('cache invalidation', () => {
     it('invalidates flag:{name} after create', async () => {
@@ -332,7 +332,7 @@ describe('FlagsService', () => {
       expect(mockFlagCache.del).toHaveBeenCalledWith('dark-mode');
     });
 
-    it('invalidates the OLD and NEW keys on rename (UC-03 rename-safe)', async () => {
+    it('invalidates the OLD and NEW keys on rename (rename-safe)', async () => {
       mockPrisma.flag.findUnique.mockResolvedValue(rawFlag); // name: dark-mode
       mockPrisma.flag.update.mockResolvedValue({ ...rawFlag, name: 'new-name' });
       mockAudit.log.mockResolvedValue({});

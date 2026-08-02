@@ -4,7 +4,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 /**
  * Resolved flag configuration stored in the cache.
  * Plain JSON (string/boolean/number/string[]) — serialized by Keyv's default
- * JSON serializer (D2), no manual stringify/parse needed.
+ * JSON serializer, no manual stringify/parse needed.
  */
 export interface FlagConfig {
   id: string;
@@ -28,7 +28,7 @@ interface CacheLike {
 }
 
 /**
- * Cache TTL in milliseconds. cache-manager v5+ uses ms, NOT seconds (D3):
+ * Cache TTL in milliseconds. cache-manager v5+ uses ms, NOT seconds:
  * 30s = 30_000. Single source of truth shared with the global CacheModule
  * registration in AppModule.
  */

@@ -337,10 +337,10 @@ describe('EvaluationService', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // Cache-aside reads (UC-09/UC-10)
+  // Cache-aside reads
   // ---------------------------------------------------------------------------
   describe('evaluate with cache-aside', () => {
-    it('serves a cache hit WITHOUT a DB read and records the cached id (UC-09)', async () => {
+    it('serves a cache hit WITHOUT a DB read and records the cached id', async () => {
       mockFlagCache.get.mockResolvedValue({
         id: 'flag-cached-1',
         enabled: true,
