@@ -153,6 +153,7 @@ Rules:
 - **snake_case** for PostgreSQL tables/columns, **camelCase** for TypeScript
 - **No unit tests for page.tsx** — test data fetchers + components individually
 - **E2E with Playwright** planned post-MVP
+- **Code comments**: WHY only — explain non-obvious decisions (gotchas, contracts, tradeoffs). NEVER reference SDD artifacts (`D1`–`D5`, `UC-XX`) in code or test names — traceability lives in PRs, commits, and openspec artifacts
 
 ---
 

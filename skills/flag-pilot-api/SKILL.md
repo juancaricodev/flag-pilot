@@ -293,6 +293,29 @@ describe('Flags (e2e)', () => {
 - `set-cookie` header verification for login/logout
 - Clean database with FK-safe ordering
 
+### Pattern 12: Code Comments — WHY Only
+
+Comments explain **decisions**, never restate code:
+
+- Write WHY — the non-obvious: gotchas, contracts, tradeoffs (e.g. _"cache-manager v5+ TTL is in ms, not seconds"_)
+- Never write WHAT — the code already says what it does
+- **NEVER reference SDD artifacts** (`D1`–`D5`, `UC-XX`) in comments or test names — traceability lives in PRs, commits, and openspec artifacts, and the references rot once artifacts are archived
+- Prefer a well-named function/type over a comment when possible
+
+```typescript
+// GOOD — explains a non-obvious contract
+// Keyv emits 'error' on connection failures; an unhandled 'error' event
+// on an EventEmitter crashes the Node process.
+store.on('error', (err: Error) => Logger.warn(...));
+
+// BAD — references SDD artifacts, rots when archived
+// MANDATORY (D4): Keyv emits 'error' on connection failures...
+
+// BAD — restates the code (WHAT)
+// Delete the cached flag config
+await this.cache.del(key);
+```
+
 ---
 
 ## Naming Conventions
@@ -377,7 +400,7 @@ describe('FlagsService', () => {
   });
 
   describe('create', () => {
-    it('creates a flag successfully with valid data (UC-01 happy path)', async () => {
+    it('creates a flag successfully with valid data', async () => {
       mockPrisma.flag.findUnique.mockResolvedValue(null);
       mockPrisma.flag.create.mockResolvedValue(prismaFlag);
       const result = await service.create({ name: 'test-flag' });
