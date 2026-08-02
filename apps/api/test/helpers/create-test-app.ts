@@ -3,15 +3,16 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/prisma/prisma.service';
-import { ensureTestDbConnection } from './test-db';
+import { ensureTestDbConnection, ensureTestRedisConnection } from './test-db';
 
 /**
  * Bootstraps a NestJS application identical to main.ts but without
  * listening — use supertest(app.getHttpServer()) for HTTP requests.
  */
 export async function createTestApp(): Promise<INestApplication> {
-  // Set process.env.DATABASE_URL before any module is instantiated
+  // Set process.env.DATABASE_URL + REDIS_URL before any module is instantiated
   ensureTestDbConnection();
+  ensureTestRedisConnection();
 
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [AppModule],

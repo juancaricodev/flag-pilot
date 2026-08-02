@@ -10,10 +10,9 @@
 
 Carried over from `docs/tasks.md`. These were part of the original MVP scope but deferred.
 
-| #   | Task                                                       | Phase            | Notes                                                                                |
-| --- | ---------------------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------ |
-| 3.4 | Redis cache-aside layer (30s TTL)                          | API — Evaluation | Reduce latency on `/evaluate` endpoints. Adds operational complexity (Redis server). |
-| 7.4 | E2E test: login → create flag → toggle → verify evaluation | Testing          | Critical path integration coverage. Requires Playwright setup.                       |
+| #   | Task                                                       | Phase   | Notes                                                          |
+| --- | ---------------------------------------------------------- | ------- | -------------------------------------------------------------- |
+| 7.4 | E2E test: login → create flag → toggle → verify evaluation | Testing | Critical path integration coverage. Requires Playwright setup. |
 
 ---
 

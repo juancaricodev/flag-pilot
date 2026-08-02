@@ -3,6 +3,7 @@ import { ConflictException, NotFoundException } from '@nestjs/common';
 import { FlagsService } from './flags.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../../audit/application/audit.service';
+import { FlagCacheService } from '../../flag-cache/flag-cache.service';
 
 describe('FlagsService', () => {
   let service: FlagsService;
@@ -20,6 +21,12 @@ describe('FlagsService', () => {
   const mockAudit = {
     log: jest.fn(),
     findByFlagId: jest.fn(),
+  };
+
+  const mockFlagCache = {
+    get: jest.fn(),
+    set: jest.fn(),
+    del: jest.fn(),
   };
 
   // Shared test fixtures
@@ -40,6 +47,7 @@ describe('FlagsService', () => {
         FlagsService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: AuditService, useValue: mockAudit },
+        { provide: FlagCacheService, useValue: mockFlagCache },
       ],
     }).compile();
 
@@ -307,6 +315,64 @@ describe('FlagsService', () => {
 
       expect(result).toEqual(auditLogs);
       expect(mockAudit.findByFlagId).toHaveBeenCalledWith('flag-1');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Eager cache invalidation (del AFTER the successful Prisma write)
+  // ---------------------------------------------------------------------------
+  describe('cache invalidation', () => {
+    it('invalidates flag:{name} after create', async () => {
+      mockPrisma.flag.findUnique.mockResolvedValue(null);
+      mockPrisma.flag.create.mockResolvedValue(rawFlag);
+      mockAudit.log.mockResolvedValue({});
+
+      await service.create({ name: 'dark-mode' });
+
+      expect(mockFlagCache.del).toHaveBeenCalledWith('dark-mode');
+    });
+
+    it('invalidates the OLD and NEW keys on rename (rename-safe)', async () => {
+      mockPrisma.flag.findUnique.mockResolvedValue(rawFlag); // name: dark-mode
+      mockPrisma.flag.update.mockResolvedValue({ ...rawFlag, name: 'new-name' });
+      mockAudit.log.mockResolvedValue({});
+
+      await service.update('flag-1', { name: 'new-name' });
+
+      expect(mockFlagCache.del).toHaveBeenCalledWith('dark-mode');
+      expect(mockFlagCache.del).toHaveBeenCalledWith('new-name');
+    });
+
+    it('invalidates the single key on a same-name update (double-del is harmless)', async () => {
+      mockPrisma.flag.findUnique.mockResolvedValue(rawFlag);
+      mockPrisma.flag.update.mockResolvedValue({ ...rawFlag, enabled: true });
+      mockAudit.log.mockResolvedValue({});
+
+      await service.update('flag-1', { enabled: true });
+
+      expect(mockFlagCache.del).toHaveBeenCalledWith('dark-mode');
+      expect(mockFlagCache.del).toHaveBeenCalledTimes(2);
+    });
+
+    it('invalidates flag:{name} after remove', async () => {
+      mockPrisma.flag.findUnique.mockResolvedValue(rawFlag);
+      mockPrisma.flag.delete.mockResolvedValue(rawFlag);
+      mockAudit.log.mockResolvedValue({});
+
+      await service.remove('flag-1');
+
+      expect(mockFlagCache.del).toHaveBeenCalledWith('dark-mode');
+    });
+
+    it('does NOT break the mutation when del rejects (Redis down)', async () => {
+      mockPrisma.flag.findUnique.mockResolvedValue(null);
+      mockPrisma.flag.create.mockResolvedValue(rawFlag);
+      mockAudit.log.mockResolvedValue({});
+      mockFlagCache.del.mockRejectedValue(new Error('connection refused'));
+
+      const result = await service.create({ name: 'dark-mode' });
+
+      expect(result).toMatchObject({ id: 'flag-1', name: 'dark-mode' });
     });
   });
 });

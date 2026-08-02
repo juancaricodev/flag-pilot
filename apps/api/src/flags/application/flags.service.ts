@@ -1,6 +1,7 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../../audit/application/audit.service';
+import { FlagCacheService } from '../../flag-cache/flag-cache.service';
 import { CreateFlagDto } from '../presentation/dtos/create-flag.dto';
 import { UpdateFlagDto } from '../presentation/dtos/update-flag.dto';
 import type { Flag, AuditLogEntry, FlagStatus } from '@fp/shared';
@@ -10,6 +11,7 @@ export class FlagsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    private readonly flagCache: FlagCacheService,
   ) {}
 
   async create(dto: CreateFlagDto): Promise<Flag> {
@@ -26,6 +28,10 @@ export class FlagsService {
         rolloutPct: dto.rolloutPct ?? 0,
       },
     });
+
+    // Eager invalidation: del AFTER the successful write — a re-created
+    // flag must not be served from a stale cached config.
+    await this.invalidate(dto.name);
 
     const result = this.toFlag(flag);
 
@@ -59,6 +65,11 @@ export class FlagsService {
       data: dto,
     });
 
+    // Eager invalidation: del both keys — rename-safe. When the name is
+    // unchanged the double-del is harmless. Runs AFTER the successful write.
+    await this.invalidate(before.name);
+    await this.invalidate(flag.name);
+
     const result = this.toFlag(flag);
 
     const enabledChanged = dto.enabled !== undefined && dto.enabled !== before.enabled;
@@ -84,6 +95,25 @@ export class FlagsService {
     });
 
     await this.prisma.flag.delete({ where: { id } });
+
+    // Eager invalidation: del AFTER the successful delete — a removed
+    // flag must not keep answering `true` from a cached config.
+    await this.invalidate(before.name);
+  }
+
+  /**
+   * Invalidate the cached config for a flag name.
+   *
+   * FlagCacheService already guarantees del never throws (degrade to stale
+   * until the 30s TTL). This call-site catch is belt-and-braces so a cache
+   * hiccup can never fail an admin mutation that already succeeded in the DB.
+   */
+  private async invalidate(name: string): Promise<void> {
+    try {
+      await this.flagCache.del(name);
+    } catch {
+      // Redis down → stale entry expires within the 30s TTL backstop
+    }
   }
 
   async getAuditLogs(flagId: string): Promise<AuditLogEntry[]> {

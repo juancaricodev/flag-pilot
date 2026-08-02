@@ -254,6 +254,34 @@ The system MUST evaluate a flag taking into account percentage rollout and white
 
 ---
 
+### Requirement: Cache evaluation results (cache-aside, 30s TTL)
+
+The system MUST serve evaluation results from a Redis cache-aside layer with a 30-second TTL to meet the sub-50ms latency target on repeated reads.
+
+#### Scenario: Cache hit serves the cached config
+
+- GIVEN a flag `"cached-flag"` has been evaluated once (config cached)
+- WHEN the client evaluates `"cached-flag"` again within 30s
+- THEN the response comes from the cache (no DB read)
+- AND an evaluation event is recorded for the hit
+- AND a stale config can be served until the TTL expires
+
+#### Scenario: Mutation invalidates the cache eagerly
+
+- GIVEN a flag `"cached-flag"` whose config is cached
+- WHEN an admin creates, updates, or removes the flag (rename invalidates old + new keys)
+- THEN the next evaluation reads fresh from the database
+- AND the stale cached value is not served
+
+#### Scenario: Redis outage degrades to cache misses
+
+- GIVEN Redis is unavailable
+- WHEN a client evaluates any flag
+- THEN the API still responds from PostgreSQL directly
+- AND the HTTP status is 200 (cache failures never surface to the client)
+
+---
+
 ## Domain: Metrics
 
 ### Purpose

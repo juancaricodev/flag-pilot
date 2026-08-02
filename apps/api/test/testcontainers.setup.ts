@@ -1,4 +1,5 @@
 import { PostgreSqlContainer } from '@testcontainers/postgresql';
+import { RedisContainer } from '@testcontainers/redis';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -24,18 +25,31 @@ function ensureDockerHost(): void {
 
 export default async function () {
   ensureDockerHost();
-  console.log('\n🐳 Starting PostgreSQL test container...');
+  console.log('\n🐳 Starting PostgreSQL + Redis test containers...');
 
-  const container = await new PostgreSqlContainer('postgres:16-alpine')
-    .withDatabase('flag_pilot_test')
-    .withStartupTimeout(90000) // 90s — GitHub Actions runners are slower than local
-    .start();
+  // Start both containers in parallel to cut CI wall time
+  const [pg, redis] = await Promise.all([
+    new PostgreSqlContainer('postgres:16-alpine')
+      .withDatabase('flag_pilot_test')
+      .withStartupTimeout(90000) // 90s — GitHub Actions runners are slower than local
+      .start(),
+    new RedisContainer('redis:7-alpine').withStartupTimeout(90000).start(),
+  ]);
 
-  const uri = container.getConnectionUri();
+  const uri = pg.getConnectionUri();
+  const redisUri = redis.getConnectionUrl();
   const metaPath = path.join(__dirname, '.testcontainers.json');
 
-  // Persist URI + containerId so globalTeardown can stop it
-  fs.writeFileSync(metaPath, JSON.stringify({ uri, containerId: container.getId() }));
+  // Persist URIs + containerIds so globalTeardown can stop both containers
+  fs.writeFileSync(
+    metaPath,
+    JSON.stringify({
+      uri,
+      containerId: pg.getId(),
+      redisUri,
+      redisContainerId: redis.getId(),
+    }),
+  );
 
   // Run migrations against the temporary database
   execSync('npx prisma migrate deploy', {
@@ -44,5 +58,6 @@ export default async function () {
     stdio: 'inherit',
   });
 
-  console.log(`\n✅ Test PostgreSQL ready at ${uri}\n`);
+  console.log(`\n✅ Test PostgreSQL ready at ${uri}`);
+  console.log(`✅ Test Redis ready at ${redisUri}\n`);
 }

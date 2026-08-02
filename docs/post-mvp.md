@@ -52,18 +52,6 @@
 
 ---
 
-## Redis cache-aside layer for Evaluation API
-
-- **Context**: Phase 3.4 (pending task). Add a cache-aside layer with Redis for evaluation results with a 30s TTL.
-- **Motivation**: Reduce latency on evaluation endpoints (sub-50ms) and avoid unnecessary load on PostgreSQL.
-- **Trade-offs**:
-  - - Operational complexity (Redis server)
-  - - Cache misses / stale reads (up to 30s)
-  - - Performance on repeated reads of the same flag
-- **Ref**: `docs/tasks.md` — task 3.4
-
----
-
 ## Per-flag metrics endpoint
 
 - **Context**: The MVP metrics feature (`GET /api/metrics`) returns global stats for all flags. A per-flag endpoint would allow a detailed metrics view on each flag's edit page.

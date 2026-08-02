@@ -2,6 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { createTestApp, cleanDatabase } from './helpers/create-test-app';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { FlagsService } from '../src/flags/application/flags.service';
 
 describe('Evaluate (e2e)', () => {
   let app: INestApplication;
@@ -150,6 +151,137 @@ describe('Evaluate (e2e)', () => {
       expect(res.body).toEqual({ enabled: false });
 
       await prisma.flag.delete({ where: { id: 'eval-rollout-out' } });
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Redis cache-aside (30s TTL)
+  // -----------------------------------------------------------------------
+  describe('Redis cache-aside', () => {
+    it('serves a stale cached config until the 30s TTL (cache hit skips the DB)', async () => {
+      const flag = await prisma.flag.create({
+        data: {
+          id: 'cache-hit-a',
+          name: 'cache-hit-a',
+          description: 'Proves the cache serves evaluations',
+          enabled: true,
+          rolloutPct: 100,
+          whitelist: [],
+        },
+      });
+
+      // 1st call → cache miss → reads DB → warms the cache
+      const first = await request(app.getHttpServer())
+        .post('/api/evaluate')
+        .send({ flag: 'cache-hit-a' })
+        .expect(200);
+      expect(first.body).toEqual({ enabled: true });
+
+      // 2nd call → cache hit (no DB read needed)
+      const second = await request(app.getHttpServer())
+        .post('/api/evaluate')
+        .send({ flag: 'cache-hit-a' })
+        .expect(200);
+      expect(second.body).toEqual({ enabled: true });
+
+      // Bypass the API's eager invalidation with a DIRECT DB write (update —
+      // a delete would cascade the Evaluation rows via the FK onDelete:
+      // Cascade and break the final recordEvaluation).
+      await prisma.flag.update({
+        where: { id: flag.id },
+        data: { enabled: false },
+      });
+
+      const dbRow = await prisma.flag.findUnique({ where: { id: flag.id } });
+      expect(dbRow?.enabled).toBe(false); // the DB now disagrees…
+
+      // …yet the API still answers true → the answer came from the Redis cache
+      const third = await request(app.getHttpServer())
+        .post('/api/evaluate')
+        .send({ flag: 'cache-hit-a' })
+        .expect(200);
+      expect(third.body).toEqual({ enabled: true });
+
+      // recordEvaluation fires on hits too — exactly one row per evaluation
+      const rows = await prisma.evaluation.count({ where: { flagId: flag.id } });
+      expect(rows).toBe(3);
+
+      await prisma.flag.delete({ where: { id: flag.id } });
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Eager cache invalidation via real FlagService mutations
+  // -----------------------------------------------------------------------
+  describe('Flag mutations invalidate the cache', () => {
+    let flags: FlagsService;
+
+    beforeAll(() => {
+      flags = app.get(FlagsService);
+    });
+
+    it('update(enabled) takes effect immediately', async () => {
+      const flag = await flags.create({ name: 'inv-update', enabled: false, rolloutPct: 100 });
+
+      await request(app.getHttpServer())
+        .post('/api/evaluate')
+        .send({ flag: 'inv-update' })
+        .expect(200, { enabled: false });
+
+      await flags.update(flag.id, { enabled: true });
+
+      // Without invalidation this would return the stale cached `false`
+      const res = await request(app.getHttpServer())
+        .post('/api/evaluate')
+        .send({ flag: 'inv-update' })
+        .expect(200);
+
+      expect(res.body).toEqual({ enabled: true });
+    });
+
+    it('rename invalidates the OLD key — the old name stops answering true', async () => {
+      const flag = await flags.create({ name: 'inv-rename-old', enabled: true, rolloutPct: 100 });
+
+      await request(app.getHttpServer())
+        .post('/api/evaluate')
+        .send({ flag: 'inv-rename-old' })
+        .expect(200, { enabled: true });
+
+      await flags.update(flag.id, { name: 'inv-rename-new' });
+
+      // Stale `flag:inv-rename-old` cache entry would say true — it must not
+      const oldName = await request(app.getHttpServer())
+        .post('/api/evaluate')
+        .send({ flag: 'inv-rename-old' })
+        .expect(200);
+      expect(oldName.body).toEqual({ enabled: false });
+
+      // The new name reads fresh from the DB
+      const newName = await request(app.getHttpServer())
+        .post('/api/evaluate')
+        .send({ flag: 'inv-rename-new' })
+        .expect(200);
+      expect(newName.body).toEqual({ enabled: true });
+    });
+
+    it('remove invalidates the cache — a deleted flag stops answering true', async () => {
+      const flag = await flags.create({ name: 'inv-remove', enabled: true, rolloutPct: 100 });
+
+      await request(app.getHttpServer())
+        .post('/api/evaluate')
+        .send({ flag: 'inv-remove' })
+        .expect(200, { enabled: true });
+
+      await flags.remove(flag.id);
+
+      // Without invalidation the stale cache would say true (and the hit would
+      // 500 on recordEvaluation against the deleted flagId)
+      const res = await request(app.getHttpServer())
+        .post('/api/evaluate')
+        .send({ flag: 'inv-remove' })
+        .expect(200);
+
+      expect(res.body).toEqual({ enabled: false });
     });
   });
 });

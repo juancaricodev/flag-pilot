@@ -1,30 +1,44 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-
-interface FlagConfig {
-  id: string;
-  enabled: boolean;
-  rolloutPct: number;
-  whitelist: string[];
-}
+import { FlagCacheService, FlagConfig } from '../../flag-cache/flag-cache.service';
 
 @Injectable()
 export class EvaluationService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly flagCache: FlagCacheService,
+  ) {}
 
   async evaluate(flagName: string): Promise<boolean> {
+    // Cache-aside: a hit serves the cached config without a DB read.
+    // FlagCacheService never throws — Redis down degrades to a miss (null).
+    const cached = await this.flagCache.get(flagName);
+    if (cached) {
+      const result = cached.enabled;
+      await this.recordEvaluation({
+        flagId: cached.id,
+        userId: null,
+        result,
+      });
+      return result;
+    }
+
     const flag = await this.prisma.flag.findUnique({ where: { name: flagName } });
 
     if (!flag) {
-      // Safe default: non-existent flags are disabled
-      // No evaluation event recorded — flagId is required in the schema
+      // Safe default: non-existent flags are disabled.
+      // No negative caching (no set) — the cache stays clean for the 30s TTL.
+      // No evaluation event recorded — flagId is required in the schema.
       return false;
     }
 
-    const result = flag.enabled;
+    const config = this.toConfig(flag);
+    await this.flagCache.set(flagName, config);
+
+    const result = config.enabled;
 
     await this.recordEvaluation({
-      flagId: flag.id,
+      flagId: config.id,
       userId: null,
       result,
     });
@@ -33,21 +47,50 @@ export class EvaluationService {
   }
 
   async evaluateWithContext(flagName: string, userId: string): Promise<boolean> {
+    const cached = await this.flagCache.get(flagName);
+    if (cached) {
+      const result = this.resolveFlag(cached, userId);
+      await this.recordEvaluation({
+        flagId: cached.id,
+        userId,
+        result,
+      });
+      return result;
+    }
+
     const flag = await this.prisma.flag.findUnique({ where: { name: flagName } });
 
     if (!flag) {
       return false;
     }
 
-    const result = this.resolveFlag(flag, userId);
+    const config = this.toConfig(flag);
+    await this.flagCache.set(flagName, config);
+
+    const result = this.resolveFlag(config, userId);
 
     await this.recordEvaluation({
-      flagId: flag.id,
+      flagId: config.id,
       userId,
       result,
     });
 
     return result;
+  }
+
+  /** Maps a Prisma flag row to the cacheable FlagConfig (plain JSON). */
+  private toConfig(flag: {
+    id: string;
+    enabled: boolean;
+    rolloutPct: number;
+    whitelist: string[];
+  }): FlagConfig {
+    return {
+      id: flag.id,
+      enabled: flag.enabled,
+      rolloutPct: flag.rolloutPct,
+      whitelist: flag.whitelist,
+    };
   }
 
   private resolveFlag(flag: FlagConfig, userId: string): boolean {

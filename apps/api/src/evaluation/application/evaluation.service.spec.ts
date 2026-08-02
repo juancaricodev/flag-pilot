@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EvaluationService } from './evaluation.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { FlagCacheService } from '../../flag-cache/flag-cache.service';
 
 describe('EvaluationService', () => {
   let service: EvaluationService;
@@ -14,14 +15,28 @@ describe('EvaluationService', () => {
     },
   };
 
+  const mockFlagCache = {
+    get: jest.fn(),
+    set: jest.fn(),
+    del: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [EvaluationService, { provide: PrismaService, useValue: mockPrisma }],
+      providers: [
+        EvaluationService,
+        { provide: PrismaService, useValue: mockPrisma },
+        { provide: FlagCacheService, useValue: mockFlagCache },
+      ],
     }).compile();
 
     service = module.get<EvaluationService>(EvaluationService);
 
     jest.clearAllMocks();
+
+    // Default: cache miss (null) — existing tests exercise the DB fallback path.
+    // Cache-hit tests override with mockResolvedValue(config).
+    mockFlagCache.get.mockResolvedValue(null);
   });
 
   // ---------------------------------------------------------------------------
@@ -317,6 +332,101 @@ describe('EvaluationService', () => {
           userId: 'user-456',
           result: true,
         },
+      });
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Cache-aside reads
+  // ---------------------------------------------------------------------------
+  describe('evaluate with cache-aside', () => {
+    it('serves a cache hit WITHOUT a DB read and records the cached id', async () => {
+      mockFlagCache.get.mockResolvedValue({
+        id: 'flag-cached-1',
+        enabled: true,
+        rolloutPct: 100,
+        whitelist: [],
+      });
+      mockPrisma.evaluation.create.mockResolvedValue({});
+
+      const result = await service.evaluate('dark-mode');
+
+      expect(result).toBe(true);
+      expect(mockPrisma.flag.findUnique).not.toHaveBeenCalled();
+      expect(mockPrisma.evaluation.create).toHaveBeenCalledWith({
+        data: { flagId: 'flag-cached-1', userId: null, result: true },
+      });
+    });
+
+    it('reads the DB on a miss and populates the cache with the FlagConfig', async () => {
+      const row = {
+        id: 'flag-1',
+        name: 'dark-mode',
+        enabled: true,
+        rolloutPct: 50,
+        whitelist: ['u1'],
+      };
+      mockFlagCache.get.mockResolvedValue(null);
+      mockPrisma.flag.findUnique.mockResolvedValue(row);
+      mockPrisma.evaluation.create.mockResolvedValue({});
+
+      const result = await service.evaluate('dark-mode');
+
+      expect(result).toBe(true);
+      expect(mockPrisma.flag.findUnique).toHaveBeenCalledWith({ where: { name: 'dark-mode' } });
+      expect(mockFlagCache.set).toHaveBeenCalledWith('dark-mode', {
+        id: 'flag-1',
+        enabled: true,
+        rolloutPct: 50,
+        whitelist: ['u1'],
+      });
+    });
+
+    it('does NOT cache a missing flag (no negative caching)', async () => {
+      mockFlagCache.get.mockResolvedValue(null);
+      mockPrisma.flag.findUnique.mockResolvedValue(null);
+
+      const result = await service.evaluate('unknown-flag');
+
+      expect(result).toBe(false);
+      expect(mockFlagCache.set).not.toHaveBeenCalled();
+    });
+
+    it('falls back to the DB when the cache is down (get → null), without throwing', async () => {
+      // Redis unreachable — FlagCacheService normalizes the failure to null
+      mockFlagCache.get.mockResolvedValue(null);
+      mockPrisma.flag.findUnique.mockResolvedValue({
+        id: 'flag-1',
+        name: 'dark-mode',
+        enabled: true,
+        rolloutPct: 0,
+        whitelist: [],
+      });
+      mockPrisma.evaluation.create.mockResolvedValue({});
+
+      const result = await service.evaluate('dark-mode');
+
+      expect(result).toBe(true);
+      expect(mockPrisma.flag.findUnique).toHaveBeenCalledWith({ where: { name: 'dark-mode' } });
+    });
+  });
+
+  describe('evaluateWithContext with cache-aside', () => {
+    it('resolves from a cached config WITHOUT a DB read (whitelist wins over disabled)', async () => {
+      mockFlagCache.get.mockResolvedValue({
+        id: 'flag-cached-1',
+        enabled: false,
+        rolloutPct: 0,
+        whitelist: ['user-whitelisted'],
+      });
+      mockPrisma.evaluation.create.mockResolvedValue({});
+
+      const result = await service.evaluateWithContext('feature-x', 'user-whitelisted');
+
+      expect(result).toBe(true);
+      expect(mockPrisma.flag.findUnique).not.toHaveBeenCalled();
+      expect(mockPrisma.evaluation.create).toHaveBeenCalledWith({
+        data: { flagId: 'flag-cached-1', userId: 'user-whitelisted', result: true },
       });
     });
   });
