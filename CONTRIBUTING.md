@@ -11,7 +11,7 @@ Flag Pilot follows a **branch-based workflow** with pull requests and code revie
 ### Branch Strategy
 
 ```
-main ← develop ← feature/user-story-XXX ← your-code
+main ← develop ← <type>/<description> ← your-code
 ```
 
 1. **Always create a branch** from `main` before starting work
@@ -22,12 +22,14 @@ main ← develop ← feature/user-story-XXX ← your-code
 
 ### Branch Naming
 
-| Type          | Pattern                   | Example                         |
-| ------------- | ------------------------- | ------------------------------- |
-| Feature       | `feature/user-story-<id>` | `feature/user-story-12`         |
-| Bug fix       | `fix/<description>`       | `fix/toggle-cache-invalidation` |
-| Documentation | `docs/<description>`      | `docs/api-endpoints`            |
-| Chore         | `chore/<description>`     | `chore/update-dependencies`     |
+| Type          | Pattern               | Example                         |
+| ------------- | --------------------- | ------------------------------- |
+| Feature       | `feat/<description>`  | `feat/redis-cache-aside`        |
+| Bug fix       | `fix/<description>`   | `fix/toggle-cache-invalidation` |
+| Documentation | `docs/<description>`  | `docs/api-endpoints`            |
+| Chore         | `chore/<description>` | `chore/update-dependencies`     |
+
+Branch names are **semantic** — they describe the change, not the ticket. User-story/issue traceability is linked in the PR body (`Closes #N`), never in the branch name.
 
 ### Pull Request Process
 
@@ -192,7 +194,7 @@ cd flag-pilot
 pnpm install
 
 # 3. Create a branch
-git checkout -b feature/user-story-XX
+git checkout -b feat/your-feature
 
 # 4. Start development
 pnpm dev          # Run all apps
@@ -200,7 +202,7 @@ pnpm test         # Run all tests
 pnpm typecheck    # Type check
 
 # 5. When ready, push and create a PR
-git push origin feature/user-story-XX
+git push origin feat/your-feature
 # Open PR on GitHub → wait for review → merge
 ```
 
