@@ -5,7 +5,7 @@
 <h1 align="center">Flag Pilot</h1>
 
 <p align="center">
-  <b>Feature flag management system with dashboard, REST API, and client SDK.</b>
+  <b>Feature flag management system with a dashboard and a REST API.</b>
 </p>
 
 <p align="center">
@@ -35,16 +35,29 @@
 
 ## Overview
 
-**Flag Pilot** is an open-source feature flag management system built with modern web technologies. It provides a dashboard UI, REST API, and client SDK for managing feature flags across environments.
+**Flag Pilot** is an open-source feature flag management system built with modern web technologies. It provides a dashboard UI and a REST API for creating, targeting, and evaluating feature flags.
 
 ### Key Features
 
-- **Real-time flag evaluation** — Toggle features instantly across environments
-- **Multi-environment support** — Manage flags per environment (dev, staging, production)
-- **Audit trail** — Track who changed what and when
-- **REST API** — Integrate with any application via HTTP
-- **Dashboard UI** — Visual interface for managing flags
-- **Docker deployment** — Ready for production with Docker Compose
+- **Real-time flag evaluation** — `POST /api/evaluate` for a plain on/off check, `POST /api/evaluate/context` for per-user decisions
+- **Sticky percentage rollout** — Consistent bucketing per `userId` via hash, so a user never flip-flops between requests
+- **Targeting rules** — Per-flag whitelist overrides on top of the percentage rollout
+- **Redis cache-aside** — 30s TTL on evaluation reads with eager invalidation on mutations; degrades to the database if Redis is unavailable
+- **Audit trail** — Every mutation logged with the fields that changed
+- **Metrics** — Evaluation counts with an enabled/disabled breakdown
+- **Dashboard UI** — Create, edit, toggle, inspect the audit timeline, and read metrics
+- **Docker deployment** — API, PostgreSQL, and Redis via Docker Compose
+
+### Roadmap
+
+Not implemented yet — tracked in [`docs/backlog.md`](docs/backlog.md):
+
+- Client SDKs (server-side and browser)
+- Multi-environment support (dev / staging / production)
+- User roles and permissions
+- Webhooks on flag change
+- A/B test analytics
+- Per-flag metrics endpoint
 
 ### Tech Stack
 
@@ -57,34 +70,39 @@
 
 ## Architecture
 
-Flag Pilot follows **Hexagonal Architecture** (Clean Architecture) with **Screaming Architecture** principles:
+Flag Pilot is a **modular monolith**: the API uses **Screaming Architecture** (one folder per domain) and the dashboard uses **Atomic Design**.
 
 ```
 flag-pilot/
 ├── apps/
-│   ├── dashboard/           # Next.js frontend
-│   │   ├── src/
-│   │   │   ├── app/         # App Router pages
-│   │   │   ├── components/  # Atomic Design (atoms → molecules → organisms)
-│   │   │   ├── actions/     # Server Actions
-│   │   │   └── data/        # Data fetchers
-│   │   └── ...
-│   └── api/                 # NestJS backend
-│       ├── src/
-│       │   ├── domains/     # Domain logic (pure, no dependencies)
-│       │   ├── infrastructure/  # External concerns (DB, HTTP, Auth)
-│       │   └── shared/      # Shared types
-│       └── ...
+│   ├── dashboard/               # Next.js frontend
+│   │   └── src/
+│   │       ├── app/             # App Router pages
+│   │       ├── components/      # Atomic Design (atoms → molecules → organisms)
+│   │       ├── actions/         # Server Actions (all mutations)
+│   │       ├── data/            # Data fetchers (Server Components)
+│   │       └── proxy.ts         # Auth proxy (Next.js 16 convention)
+│   └── api/                     # NestJS backend
+│       └── src/
+│           ├── flags/           # One folder per domain, each split into
+│           ├── auth/            #   presentation/ (controller, DTOs, guards)
+│           ├── audit/           #   application/  (services)
+│           ├── evaluation/
+│           ├── metrics/
+│           ├── flag-cache/      # Redis cache-aside wrapper
+│           └── prisma/
 ├── packages/
-│   └── shared/              # Shared TypeScript types
-├── openspec/                # Specifications and design docs
-└── docs/                    # Project documentation
+│   └── shared/                  # Shared TypeScript types
+├── openspec/                    # SDD specifications (source of truth)
+├── docs/                        # Project documentation
+└── skills/                      # Project-specific AI skills
 ```
 
 ### Design Principles
 
-- **Hexagonal Architecture** — Domain logic isolated from infrastructure
+- **Screaming Architecture** — NestJS modules are named after their domain (`flags`, `auth`, `audit`, `evaluation`, `metrics`), so the structure tells you what the system does
 - **Atomic Design** — Component hierarchy: atoms → molecules → organisms
+- **Server Actions** — All dashboard mutations go through `src/actions/`, never a client-side fetch
 - **SDD (Spec-Driven Development)** — Specifications before code
 - **TDD** — Test-Driven Development with strict RED → GREEN → REFACTOR
 
@@ -94,7 +112,7 @@ flag-pilot/
 
 - Node.js 20+
 - pnpm
-- PostgreSQL
+- Docker (PostgreSQL is required; Redis is optional — evaluation degrades to the database without it)
 
 ### Installation
 
@@ -105,6 +123,9 @@ cd flag-pilot
 
 # Install dependencies
 pnpm install
+
+# Start PostgreSQL (add Redis separately if you want cache hits)
+docker compose up -d
 ```
 
 ### Development
@@ -152,15 +173,23 @@ docker-compose --env-file .env.prod -f docker-compose.prod.yml up -d
 
 ## API Endpoints
 
-| Method | Endpoint         | Description       |
-| ------ | ---------------- | ----------------- |
-| GET    | `/health`        | Health check      |
-| POST   | `/auth/login`    | User login        |
-| POST   | `/auth/register` | User registration |
-| GET    | `/flags`         | List all flags    |
-| POST   | `/flags`         | Create a flag     |
-| PATCH  | `/flags/:id`     | Update a flag     |
-| DELETE | `/flags/:id`     | Delete a flag     |
+The evaluation endpoints are public. Everything under `/api/flags`, `/api/audit`, and `/api/metrics` requires the auth cookie.
+
+| Method | Endpoint                | Description                                           |
+| ------ | ----------------------- | ----------------------------------------------------- |
+| GET    | `/health`               | Health check                                          |
+| POST   | `/api/auth/login`       | Login — sets an httpOnly JWT cookie (7 days)          |
+| POST   | `/api/auth/logout`      | Logout — clears the cookie                            |
+| GET    | `/api/flags`            | List all flags                                        |
+| POST   | `/api/flags`            | Create a flag                                         |
+| GET    | `/api/flags/:id`        | Get a single flag                                     |
+| PATCH  | `/api/flags/:id`        | Update a flag (toggle, rollout percentage, whitelist) |
+| DELETE | `/api/flags/:id`        | Delete a flag                                         |
+| GET    | `/api/flags/:id/audit`  | Audit entries for one flag                            |
+| GET    | `/api/audit`            | All audit entries                                     |
+| GET    | `/api/metrics`          | Global evaluation metrics                             |
+| POST   | `/api/evaluate`         | Evaluate a flag by name                               |
+| POST   | `/api/evaluate/context` | Evaluate a flag for a `userId` (whitelist + rollout)  |
 
 ## Contributing
 

@@ -99,20 +99,24 @@ Once a user story is approved, we follow the SDD flow to implement it. This ensu
 
 ### Phases
 
-| #   | Phase       | What happens                                | Approval    |
-| --- | ----------- | ------------------------------------------- | ----------- |
-| 1   | **Explore** | Investigate codebase, understand context    | —           |
-| 2   | **Propose** | Propose approach and scope                  | ✅ Required |
-| 3   | **Spec**    | Write specifications with requirements      | ✅ Required |
-| 4   | **Design**  | Technical design and architecture decisions | ✅ Required |
-| 5   | **Tasks**   | Break down into implementation tasks        | ✅ Required |
-| 6   | **Apply**   | Implement the code                          | —           |
-| 7   | **Verify**  | Validate against specs                      | ✅ Required |
+| #   | Phase       | What happens                                        | Approval    |
+| --- | ----------- | --------------------------------------------------- | ----------- |
+| 1   | **Propose** | Intent, scope, approach, rollback plan              | ✅ Required |
+| 2   | **Spec**    | Requirements and Given/When/Then scenarios          | ✅ Required |
+| 3   | **Design**  | Technical design and architecture decisions         | ✅ Required |
+| 4   | **Tasks**   | Breakdown into implementation tasks (1.1, 1.2, ...) | ✅ Required |
+| 5   | **Apply**   | Implement the code with atomic commits              | —           |
+| 6   | **Verify**  | Validate against specs and produce a verify report  | ✅ Required |
+| 7   | **Archive** | Merge delta specs, archive the change folder        | ✅ Required |
+
+**Explore** is an optional pre-phase (investigate the codebase before proposing). It produces no artifact and has no approval gate, so it is not one of the seven phases.
 
 ### Rules
 
+- **Start from an approved user story** — no SDD phase runs before the issue has `status:approved`
 - **Never skip phases** — each builds on the previous
 - **Wait for approval** before moving to the next phase
+- **Archive runs inside the feature branch** — delta specs merge and doc updates are committed to the branch and ship inside the feature PR. A docs-only PR opened after a feature merge is a process violation
 - **Document decisions** in `docs/design.md`
 - **Update tasks** in `docs/tasks.md` as you go
 

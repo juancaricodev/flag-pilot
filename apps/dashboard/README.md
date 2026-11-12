@@ -21,14 +21,16 @@ Feature flag management dashboard built with Next.js 16.
 
 ```
 src/
-├── app/              # App Router pages
+├── app/              # App Router pages ((dashboard) route group + login)
 ├── components/       # Atomic Design components
 │   ├── atoms/        # Basic UI elements
 │   ├── molecules/    # Component combinations
 │   └── organisms/    # Complex sections
-├── actions/          # Server Actions
-├── data/             # Data fetchers
-└── styles/           # Global styles
+├── actions/          # Server Actions (all mutations)
+├── data/             # Data fetchers (Server Components)
+├── utils/            # Pure helpers
+├── proxy.ts          # Auth proxy — Next.js 16 convention (replaces middleware.ts)
+└── styles/           # Global styles + SCSS tokens/mixins
 ```
 
 ## Getting Started
