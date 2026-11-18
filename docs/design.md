@@ -371,13 +371,13 @@ flag-pilot/
 │   ├── design.md
 │   ├── specs.md
 │   ├── tasks.md
-│   └── post-mvp.md
-├── openspec/
-│   ├── config.yaml
-│   └── specs/
-│       ├── dashboard/spec.md
-│       ├── api/
-│       └── database/
+│   ├── post-mvp.md
+│   └── specs/                               # Permanent requirements
+│       ├── api/spec.md
+│       ├── api-cd-pipeline/spec.md
+│       ├── api-docker/spec.md
+│       ├── api-health/spec.md
+│       └── dashboard/spec.md
 ├── turbo.json
 ├── pnpm-workspace.yaml
 └── package.json
