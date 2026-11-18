@@ -54,7 +54,7 @@
   - Server Component fetch to `GET /api/flags` — pass cookie via headers
   - Render grid of `FlagCard` molecules
   - `FlagCard` is `'use client'` for the toggle button (pending 5.6)
-- [x] 5.4a **Atom components** (see `openspec/specs/dashboard/spec.md`)
+- [x] 5.4a **Atom components** (see the [dashboard specification](specs/dashboard/spec.md))
   - `Button` atom: primary/secondary/ghost variants, 8 tests
   - `Badge` atom: enabled/disabled/partial status colors, 5 tests
   - `Input` atom: label/error states, forwardRef, 7 tests

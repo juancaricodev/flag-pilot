@@ -104,17 +104,17 @@ pnpm --filter api test:cov        # Coverage
 ## Development Workflow
 
 > **Rule: No direct pushes to `main`.** All work goes through branches and pull requests.
->
-> **Rule: SDD by default.** Every change (feature, fix, docs, chore) goes through the SDD flow unless the human EXPLICITLY asks to skip it. "Do it directly" is the only valid skip signal — never assume a skip.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide (branch naming, PR process, user stories, SDD flow).
+Use **Organic Driven Development (ODD)**. Follow the [contribution workflow](CONTRIBUTING.md#organic-driven-development-odd) for routing and verification.
 
 ### Quick Reference
 
 - **Branch**: `<type>/<description>` — semantic (e.g. `feat/redis-cache-aside`, `docs/comment-convention`). Traceability links live in the PR, not the branch name
-- **PR**: Conventional commit title, link user story, CI must pass
+- **PR**: Conventional commit title, link the user story or issue, CI must pass
 - **Merge**: Merge commit with at least 1 approval (no squash — preserve full history)
-- **Flow**: User Story → SDD phases (Apply → Verify → Archive, all in the feature branch) → PR → Review → Merge
+- **Intake**: New features require a user story with `status:approved` before implementation. Small fixes, docs, and chores do not need that label before work starts; their PR still links to an issue.
+- **Routing**: Work inline by default. Track substantial work in one `odd/tasks/<feature>.md` with an Engram mirror. Delegate only for a concrete mapping, parallel implementation, or high-risk verification need. Pass matching skill paths and test commands to any delegate.
+- **Verification**: Use RED → GREEN → REFACTOR when a runnable deterministic test can cover the behavior change. For documentation-only changes, check the changed text and references. Keep Receipt-Driven Development (RDD) settings and delivery decisions under human control.
 
 ### Commit Convention
 
@@ -130,19 +130,14 @@ Rules:
 
 ### Documentation Updates
 
-**After completing any feature or change, ALWAYS update documentation BEFORE making the final commit:**
+Update the relevant documentation on the same branch before the final commit:
 
 1. `docs/tasks.md` — mark completed items with `[x]`
 2. `docs/design.md` — document architecture decisions made
 3. `docs/specs.md` — add new requirements if applicable
-4. `openspec/specs/` — sync merged specs if requirements changed
-5. `openspec/config.yaml` — update project context if architecture changed
+4. [`docs/specs/`](docs/specs/) — update permanent requirements when they change
 
-**Documentation lives in the feature PR.** All doc updates (including the `openspec/specs/` sync) happen IN the feature branch during the Archive phase — NEVER post-merge. A docs-only PR opened after a feature merge is a process violation.
-
-- `docs/` is the portfolio-facing documentation — it must reflect the current state of the project
-- `openspec/changes/` artifacts are gitignored and live only in Engram, but `openspec/specs/` + `config.yaml` are the permanent tracked record
-- `openspec/config.yaml` at the root level (NOT `openspec/changes/`)
+Ship feature documentation in the same PR as the feature. Keep the permanent requirements in `docs/specs/` separate from work tracking in `odd/tasks/`.
 
 ---
 
@@ -155,66 +150,4 @@ Rules:
 - **snake_case** for PostgreSQL tables/columns, **camelCase** for TypeScript
 - **No unit tests for page.tsx** — test data fetchers + components individually
 - **E2E with Playwright** planned post-MVP
-- **Code comments**: WHY only — explain non-obvious decisions (gotchas, contracts, tradeoffs). NEVER reference SDD artifacts (`D1`–`D5`, `UC-XX`) in code or test names — traceability lives in PRs, commits, and openspec artifacts
-
----
-
-## SDD Collaboration Protocol
-
-The orchestrator (this agent) DELEGATES every SDD phase to the appropriate sub-agent (`sdd-*`). The orchestrator NEVER writes code or documentation directly — it coordinates, presents results, and waits for human approval.
-
-### Orchestrator role
-
-1. Launch the right sub-agent for the phase (e.g., `sdd-propose`, `sdd-spec`)
-2. Present the sub-agent's result to the human
-3. Wait for explicit approval before proceeding to the next phase
-4. NEVER skip phases, write artifacts manually, or advance without approval
-
-### Phase flow
-
-| #   | Phase       | Sub-agent     | How it works                                                                                                                         |
-| --- | ----------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | **Propose** | `sdd-propose` | Launch sub-agent → present result → WAIT for approval                                                                                |
-| 2   | **Spec**    | `sdd-spec`    | Launch sub-agent → present result → WAIT for approval                                                                                |
-| 3   | **Design**  | `sdd-design`  | Launch sub-agent → present result → WAIT for approval                                                                                |
-| 4   | **Tasks**   | `sdd-tasks`   | Launch sub-agent → present result → WAIT for approval                                                                                |
-| 5   | **Apply**   | `sdd-apply`   | Launch sub-agent ONLY after tasks approved                                                                                           |
-| 6   | **Verify**  | `sdd-verify`  | Launch sub-agent → present results → WAIT before archive                                                                             |
-| 7   | **Archive** | `sdd-archive` | Launch sub-agent ONLY with explicit confirmation — runs IN the feature branch BEFORE the PR; commits the spec/doc sync to the branch |
-
-**Rule: "Delegate, present, wait"** — the orchestrator delegates the work to a sub-agent, presents the result, and pauses. Moving to the next phase without human approval is a violation of this protocol.
-
-### Workflow Gate — Non-negotiable
-
-> **SDD by default**: every change goes through the SDD flow (User Story → SDD phases → PR → Review → Merge — the Archive phase runs in the feature branch BEFORE the PR, so docs + spec sync ship inside the feature PR) unless the human EXPLICITLY says otherwise. A skip is NEVER assumed — the human must ask for it ("do it directly").
-
-1. **Approved user story required** — every SDD change MUST start with an approved GitHub issue (user story, `status:approved`) BEFORE launching any SDD sub-agent. If the issue doesn't exist, create it via the `issue-creation` skill (template + labels) and get `status:approved`. **No user story → no SDD sub-agent.** The only exception is an explicit human request to skip the gate.
-
-### Orchestrator Launch Duties — Non-negotiable
-
-> These duties exist because sub-agent self-discovery is a fallback, not a mechanism. If the orchestrator does not inject, the sub-agent runs blind — that is an ORCHESTRATOR failure, never a sub-agent failure.
-
-1. **TDD mode injection** — before launching `sdd-apply` or `sdd-verify`, the orchestrator MUST resolve TDD mode from `openspec/config.yaml` (`strict_tdd` + testing section) and inject `STRICT TDD MODE IS ACTIVE` or `STANDARD MODE` verbatim into the sub-agent prompt. Never rely on sub-agent self-discovery.
-2. **Registry injection** — before launching ANY SDD sub-agent, the orchestrator MUST read `.atl/skill-registry.md` (delegator-use-only) and inject its compact rules into the sub-agent prompt. Sub-agents never read the registry themselves.
-
-### Rules — Non-negotiable
-
-1. **NEVER write code or documentation directly** — always delegate to sub-agents
-2. **NEVER skip phases** — even if the human says "keep going", delegate to sub-agents in order
-3. **Ask permission before writing** — if no sub-agent exists for a task, ASK the human before writing code or docs yourself
-4. **Wait for approval** — between every phase, unless the human explicitly says otherwise
-
-### Exceptions (when the human says "keep going")
-
-- The orchestrator MAY skip the **wait** between phases
-- The orchestrator MUST STILL delegate to sub-agents — "keep going" means "don't pause to ask me", NOT "do it yourself"
-- If the human says "do it all with SDD", the orchestrator MUST clarify: "Do you want me to go phase by phase with approval, or do everything and show you the final result?"
-
-### What "keep going" means
-
-| ✅ Allowed                        | ❌ Not allowed                             |
-| --------------------------------- | ------------------------------------------ |
-| Skip the pause between phases     | Write code directly                        |
-| Launch next sub-agent immediately | Write documentation directly               |
-| Batch multiple phases in one go   | Skip delegation entirely                   |
-| Assume approval for routine steps | Make architecture decisions without asking |
+- **Code comments**: WHY only — explain non-obvious decisions (gotchas, contracts, tradeoffs). Keep task and spec IDs out of comments and test names; preserve traceability in PRs, commits, and task documents.

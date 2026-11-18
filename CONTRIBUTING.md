@@ -11,7 +11,7 @@ Flag Pilot follows a **branch-based workflow** with pull requests and code revie
 ### Branch Strategy
 
 ```
-main ← develop ← <type>/<description> ← your-code
+main ← <type>/<description>
 ```
 
 1. **Always create a branch** from `main` before starting work
@@ -44,7 +44,7 @@ Branch names are **semantic** — they describe the change, not the ticket. User
 
 ## User Stories
 
-Every feature starts with a user story. This ensures we build the right thing before we build it right.
+Before implementing a new feature, get its GitHub user story labeled `status:approved`. Small fixes, documentation changes, and chores can start without that label, but their PRs still link to an issue.
 
 ### Format
 
@@ -93,32 +93,29 @@ Every feature starts with a user story. This ensures we build the right thing be
 
 ---
 
-## Spec-Driven Development (SDD)
+## Organic Driven Development (ODD)
 
-Once a user story is approved, we follow the SDD flow to implement it. This ensures thoughtful, well-specified implementations.
+Use the amount of planning and verification the change needs, rather than a fixed sequence of phases.
 
-### Phases
+1. **Understand the change.** Confirm the outcome, inspect the relevant requirements in [the permanent specs](docs/specs/) or [the domain spec](docs/specs.md), and identify the affected packages. Resolve open product decisions before implementing. Include a rollback plan for risky changes.
+2. **Choose how to track it.** If the original request and `git diff` are enough to resume the work, work directly without a task file. Otherwise keep one `odd/tasks/<feature>.md` with an Engram mirror under `odd/<feature>/tasks`. Work directly by default; delegate only for a concrete mapping, parallel implementation, or independent high-risk verification need.
+3. **Verify and document it.** Run the checks relevant to the change. Record architecture decisions and their rationale in [the design guide](docs/design.md). Update the relevant permanent requirements and [MVP checklist](docs/tasks.md) as needed, in the same PR as the change.
 
-| #   | Phase       | What happens                                        | Approval    |
-| --- | ----------- | --------------------------------------------------- | ----------- |
-| 1   | **Propose** | Intent, scope, approach, rollback plan              | ✅ Required |
-| 2   | **Spec**    | Requirements and Given/When/Then scenarios          | ✅ Required |
-| 3   | **Design**  | Technical design and architecture decisions         | ✅ Required |
-| 4   | **Tasks**   | Breakdown into implementation tasks (1.1, 1.2, ...) | ✅ Required |
-| 5   | **Apply**   | Implement the code with atomic commits              | —           |
-| 6   | **Verify**  | Validate against specs and produce a verify report  | ✅ Required |
-| 7   | **Archive** | Merge delta specs, archive the change folder        | ✅ Required |
+### Tracked work
 
-**Explore** is an optional pre-phase (investigate the codebase before proposing). It produces no artifact and has no approval gate, so it is not one of the seven phases.
+Start the task document with the objective, branch, delivery strategy, and test runner. Use these sections in order:
 
-### Rules
+- `## Specs`: Number requirements as `S1`, `S2`, and so on. Quote the user's exact requirements and examples when capturing acceptance criteria.
+- `## Tasks`: One line per task with its ID, linked spec IDs, route, status, and commit or verification evidence. Mark a task complete only after observing the result and its checks.
+- `## Log`: Put the original request verbatim in `L1`, then append decisions, changes, and verification results.
 
-- **Start from an approved user story** — no SDD phase runs before the issue has `status:approved`
-- **Never skip phases** — each builds on the previous
-- **Wait for approval** before moving to the next phase
-- **Archive runs inside the feature branch** — delta specs merge and doc updates are committed to the branch and ship inside the feature PR. A docs-only PR opened after a feature merge is a process violation
-- **Document decisions** in `docs/design.md`
-- **Update tasks** in `docs/tasks.md` as you go
+### Verification
+
+For behavior changes with a runnable deterministic test, use **RED → GREEN → REFACTOR**. Run the focused test and the applicable suite. Documentation-only changes need structural checks, such as checking links and renamed paths, not application tests.
+
+Use `pnpm test` for the Jest suites and `pnpm build` for build verification. The dashboard uses React Testing Library for component tests; the API uses NestJS Testing and runs E2E with Supertest and Testcontainers via `pnpm --filter api test:e2e` (requires Docker). Use `pnpm --filter api test:cov` for API coverage. See the [CI checks](#cicd-pipeline) for lint and typechecking commands.
+
+Receipt-Driven Development (RDD) adds an independent review for high-risk changes when enabled and consented to for that candidate. It does not replace verification or the normal PR approval. The contributor controls RDD settings and publishing decisions.
 
 ---
 
@@ -222,7 +219,7 @@ flag-pilot/
 ├── packages/
 │   └── shared/           # TypeScript types
 ├── docs/                 # Project documentation
-├── openspec/             # SDD artifacts
+│   └── specs/            # Permanent requirements
 ├── skills/               # AI agent skills
 └── .github/workflows/    # CI/CD pipelines
 ```
@@ -232,6 +229,6 @@ flag-pilot/
 ## Need Help?
 
 - Check `docs/design.md` for architecture decisions
-- Check `docs/specs.md` for feature specifications
+- Check [the domain spec](docs/specs.md) and [permanent requirements](docs/specs/) for feature specifications
 - Check `docs/post-mvp.md` for planned improvements
 - Check `docs/backlog.md` for all pending work

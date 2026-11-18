@@ -93,8 +93,8 @@ flag-pilot/
 │           └── prisma/
 ├── packages/
 │   └── shared/                  # Shared TypeScript types
-├── openspec/                    # SDD specifications (source of truth)
 ├── docs/                        # Project documentation
+│   └── specs/                   # Permanent requirements
 └── skills/                      # Project-specific AI skills
 ```
 
@@ -103,7 +103,6 @@ flag-pilot/
 - **Screaming Architecture** — NestJS modules are named after their domain (`flags`, `auth`, `audit`, `evaluation`, `metrics`), so the structure tells you what the system does
 - **Atomic Design** — Component hierarchy: atoms → molecules → organisms
 - **Server Actions** — All dashboard mutations go through `src/actions/`, never a client-side fetch
-- **SDD (Spec-Driven Development)** — Specifications before code
 - **TDD** — Test-Driven Development with strict RED → GREEN → REFACTOR
 
 ## Quick Start
@@ -193,7 +192,7 @@ The evaluation endpoints are public. Everything under `/api/flags`, `/api/audit`
 
 ## Contributing
 
-We follow a professional development workflow with branch-based development, pull requests, and Spec-Driven Development (SDD).
+We use [Organic Driven Development (ODD)](CONTRIBUTING.md#organic-driven-development-odd) with branches and pull requests.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 

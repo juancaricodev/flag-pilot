@@ -15,7 +15,6 @@ Feature flag management REST API built with NestJS, Prisma, PostgreSQL, and Redi
 
 - **Screaming Architecture** — the folder structure names the domains, not the frameworks
 - **Two layers per module** — `presentation/` (controller, DTOs, guards) and `application/` (service)
-- **SDD (Spec-Driven Development)** — specifications before code
 
 There is no abstract repository layer: services inject `PrismaService` directly (`PrismaModule` is `@Global()`). Domain types are produced by explicit mappers (`toFlag()`, `toEntry()`).
 

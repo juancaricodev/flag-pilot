@@ -299,7 +299,7 @@ Comments explain **decisions**, never restate code:
 
 - Write WHY — the non-obvious: gotchas, contracts, tradeoffs (e.g. _"cache-manager v5+ TTL is in ms, not seconds"_)
 - Never write WHAT — the code already says what it does
-- **NEVER reference SDD artifacts** (`D1`–`D5`, `UC-XX`) in comments or test names — traceability lives in PRs, commits, and openspec artifacts, and the references rot once artifacts are archived
+- **Never reference task or spec IDs** in comments or test names — preserve traceability in PRs, commits, and task documents instead
 - Prefer a well-named function/type over a comment when possible
 
 ```typescript
@@ -308,7 +308,7 @@ Comments explain **decisions**, never restate code:
 // on an EventEmitter crashes the Node process.
 store.on('error', (err: Error) => Logger.warn(...));
 
-// BAD — references SDD artifacts, rots when archived
+// BAD — references a design artifact instead of explaining the contract
 // MANDATORY (D4): Keyv emits 'error' on connection failures...
 
 // BAD — restates the code (WHAT)
@@ -449,4 +449,4 @@ pnpm --filter api exec prisma studio
 - **Prisma schema**: See `apps/api/prisma/schema.prisma`
 - **Shared types**: See `packages/shared/src/`
 - **Architecture decisions**: See `docs/design.md`
-- **API docs**: See `openspec/specs/api/` for API specifications
+- **API docs**: See [the API specification](../../docs/specs/api/spec.md)

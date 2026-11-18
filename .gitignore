@@ -31,7 +31,7 @@ tsconfig.tsbuildinfo
 # Next.js generated type declarations
 **/next-env.d.ts
 
-# SDD — change artifacts (persisted in Engram)
+# Keep historical local change artifacts out of version control
 openspec/changes/
 
 # IDE
