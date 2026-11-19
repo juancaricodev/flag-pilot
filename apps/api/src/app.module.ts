@@ -13,13 +13,25 @@ import { MetricsModule } from './metrics/metrics.module';
 import { FlagCacheModule } from './flag-cache/flag-cache.module';
 import { FLAG_CACHE_TTL } from './flag-cache/flag-cache.service';
 
+const REDIS_IO_TIMEOUT_MS = 1_000;
+
 @Module({
   imports: [
     CacheModule.registerAsync({
       isGlobal: true,
       useFactory: () => {
         const store = new Keyv({
-          store: new KeyvRedis(process.env.REDIS_URL ?? 'redis://localhost:6379'),
+          store: new KeyvRedis(
+            {
+              url: process.env.REDIS_URL ?? 'redis://localhost:6379',
+              // Cache operations queued during reconnect can replay against stale flag configs.
+              disableOfflineQueue: true,
+              socket: { socketTimeout: REDIS_IO_TIMEOUT_MS },
+              // Keep a healthy, idle socket from hitting the inactivity timeout.
+              pingInterval: REDIS_IO_TIMEOUT_MS / 2,
+            },
+            { connectionTimeout: REDIS_IO_TIMEOUT_MS },
+          ),
           namespace: 'flag',
         });
 
